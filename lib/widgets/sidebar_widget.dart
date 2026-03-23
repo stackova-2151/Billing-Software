@@ -10,6 +10,7 @@ class SidebarWidget extends StatelessWidget {
   final VoidCallback onMenuItemsTap;
   final VoidCallback onBillsHistoryTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback onProfileTap;
   final VoidCallback onLogoutTap;
 
   const SidebarWidget({
@@ -21,6 +22,7 @@ class SidebarWidget extends StatelessWidget {
     required this.onMenuItemsTap,
     required this.onBillsHistoryTap,
     required this.onSettingsTap,
+    required this.onProfileTap,
     required this.onLogoutTap,
   });
 
@@ -103,11 +105,18 @@ class SidebarWidget extends StatelessWidget {
             onTap: onBillsHistoryTap,
           ),
           const SizedBox(height: 8),
+          // _NavItem(
+          //   label: 'Settings',
+          //   icon: Icons.settings_outlined,
+          //   active: activeSection == AppScreenType.settings,
+          //   onTap: onSettingsTap,
+          // ),
+          const SizedBox(height: 8),
           _NavItem(
-            label: 'Settings',
-            icon: Icons.settings_outlined,
-            active: activeSection == AppScreenType.settings,
-            onTap: onSettingsTap,
+            label: 'Profile',
+            icon: Icons.person_outline,
+            active: activeSection == AppScreenType.profile,
+            onTap: onProfileTap,
           ),
           const Spacer(),
           _NavItem(

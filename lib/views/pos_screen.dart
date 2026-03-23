@@ -9,6 +9,8 @@ import '../widgets/category_chips_widget.dart';
 import '../widgets/item_card_widget.dart';
 import '../widgets/menu_items_management_widget.dart';
 import '../widgets/sidebar_widget.dart';
+import 'pos_dashboard_view.dart';
+import 'profile_screen.dart';
 
 class PosScreen extends StatefulWidget {
   const PosScreen({super.key});
@@ -63,6 +65,10 @@ class _PosScreenState extends State<PosScreen> {
                     screenController.setScreen(AppScreenType.billsHistory),
                 onSettingsTap: () =>
                     screenController.setScreen(AppScreenType.settings),
+                onProfileTap: () {
+                  debugPrint('[PosScreen] Profile menu tapped');
+                  screenController.setScreen(AppScreenType.profile);
+                },
                 onLogoutTap: () {},
               );
             }),
@@ -76,8 +82,12 @@ class _PosScreenState extends State<PosScreen> {
                   );
                 }
 
+                if (screen == AppScreenType.profile) {
+                  return const ProfileScreen();
+                }
+
                 if (screen == AppScreenType.dashboard) {
-                  return const _PlaceholderScreen(title: 'Dashboard');
+                  return const PosDashboardView();
                 }
 
                 if (screen == AppScreenType.billsHistory) {
