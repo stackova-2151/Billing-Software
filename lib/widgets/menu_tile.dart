@@ -27,7 +27,7 @@ class MenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = _pastelColor(item.id);
+    final bg = _pastelColor(item.id.hashCode);
 
     return Opacity(
       opacity: item.isAvailable ? 1 : 0.55,

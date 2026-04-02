@@ -1,5 +1,5 @@
 class PosOrderLine {
-  final int itemId;
+  final String itemId;
   final String itemName;
   final int qty;
   final double unitPrice;
@@ -12,6 +12,24 @@ class PosOrderLine {
   });
 
   double get lineTotal => unitPrice * qty;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'itemId': itemId,
+      'itemName': itemName,
+      'qty': qty,
+      'unitPrice': unitPrice,
+    };
+  }
+
+  factory PosOrderLine.fromMap(Map<String, dynamic> map) {
+    return PosOrderLine(
+      itemId: map['itemId'] ?? '',
+      itemName: map['itemName'] ?? '',
+      qty: map['qty'] ?? 0,
+      unitPrice: (map['unitPrice'] ?? 0).toDouble(),
+    );
+  }
 }
 
 enum PosPaymentMode { cash, online }
@@ -38,4 +56,34 @@ class PosOrder {
   });
 
   int get itemsCount => lines.fold(0, (sum, e) => sum + e.qty);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'createdAt': createdAt.toIso8601String(),
+      'lines': lines.map((line) => line.toMap()).toList(),
+      'subtotal': subtotal,
+      'gstAmount': gstAmount,
+      'total': total,
+      'paymentMode': paymentMode.name,
+      'customerName': customerName,
+    };
+  }
+
+  factory PosOrder.fromMap(String docId, Map<String, dynamic> map) {
+    return PosOrder(
+      id: docId,
+      createdAt: DateTime.parse(map['createdAt']),
+      lines: (map['lines'] as List)
+          .map((line) => PosOrderLine.fromMap(line))
+          .toList(),
+      subtotal: (map['subtotal'] ?? 0).toDouble(),
+      gstAmount: (map['gstAmount'] ?? 0).toDouble(),
+      total: (map['total'] ?? 0).toDouble(),
+      paymentMode: PosPaymentMode.values.firstWhere(
+        (e) => e.name == map['paymentMode'],
+        orElse: () => PosPaymentMode.cash,
+      ),
+      customerName: map['customerName'] ?? '',
+    );
+  }
 }

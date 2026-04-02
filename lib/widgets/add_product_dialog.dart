@@ -25,16 +25,15 @@ class _AddProductDialogState extends State<AddProductDialog> {
   late final TextEditingController nameController;
   late final TextEditingController priceController;
 
-  late String selectedCategory;
-  late double selectedGst;
-  late bool isActive;
+  late final RxString selectedCategory;
+  late final RxDouble selectedGst;
+  late final RxBool isActive;
 
   static const List<double> gstOptions = <double>[0, 5, 12, 18];
 
   @override
   void initState() {
     super.initState();
-
     final e = widget.existing;
     nameController = TextEditingController(text: e?.name ?? '');
     priceController = TextEditingController(
@@ -42,10 +41,10 @@ class _AddProductDialogState extends State<AddProductDialog> {
     );
 
     final activeCategories = widget.categoryController.activeCategoryNames;
-    selectedCategory = e?.category ?? (activeCategories.isNotEmpty ? activeCategories.first : '');
-
-    selectedGst = e?.gstPercent ?? 5;
-    isActive = e?.isActive ?? true;
+    selectedCategory =
+        (e?.category ?? (activeCategories.isNotEmpty ? activeCategories.first : '')).obs;
+    selectedGst = (e?.gstPercent ?? 5.0).obs;
+    isActive = (e?.isActive ?? true).obs;
   }
 
   @override
@@ -59,7 +58,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
     final name = nameController.text.trim();
     final price = double.tryParse(priceController.text.trim()) ?? -1;
 
-    if (name.isEmpty || selectedCategory.isEmpty || price <= 0) {
+    if (name.isEmpty || selectedCategory.value.isEmpty || price <= 0) {
       Get.snackbar('Invalid', 'Please enter valid product details');
       return;
     }
@@ -67,19 +66,19 @@ class _AddProductDialogState extends State<AddProductDialog> {
     if (widget.existing == null) {
       widget.productController.createProduct(
         name: name,
-        category: selectedCategory,
+        category: selectedCategory.value,
         price: price,
-        gstPercent: selectedGst,
-        isActive: isActive,
+        gstPercent: selectedGst.value,
+        isActive: isActive.value,
       );
     } else {
       widget.productController.editProduct(
         id: widget.existing!.id,
         name: name,
-        category: selectedCategory,
+        category: selectedCategory.value,
         price: price,
-        gstPercent: selectedGst,
-        isActive: isActive,
+        gstPercent: selectedGst.value,
+        isActive: isActive.value,
       );
     }
 
@@ -101,38 +100,27 @@ class _AddProductDialogState extends State<AddProductDialog> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Product Name',
-                ),
+                decoration: const InputDecoration(labelText: 'Product Name'),
               ),
               const SizedBox(height: 12),
               Obx(() {
                 final categories = widget.categoryController.activeCategoryNames;
-                final items = categories
-                    .map(
-                      (c) => DropdownMenuItem<String>(
-                        value: c,
-                        child: Text(c),
-                      ),
-                    )
-                    .toList();
-
-                final hasSelected = categories.contains(selectedCategory);
-                final value = hasSelected
-                    ? selectedCategory
+                final value = categories.contains(selectedCategory.value)
+                    ? selectedCategory.value
                     : (categories.isNotEmpty ? categories.first : '');
 
-                if (value != selectedCategory) {
-                  selectedCategory = value;
+                if (value != selectedCategory.value) {
+                  selectedCategory.value = value;
                 }
 
                 return DropdownButtonFormField<String>(
                   value: value.isEmpty ? null : value,
                   decoration: const InputDecoration(labelText: 'Category'),
-                  items: items,
+                  items: categories
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
                   onChanged: (v) {
-                    if (v == null) return;
-                    setState(() => selectedCategory = v);
+                    if (v != null) selectedCategory.value = v;
                   },
                 );
               }),
@@ -146,22 +134,19 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<double>(
-                value: selectedGst,
-                decoration: const InputDecoration(labelText: 'GST %'),
-                items: gstOptions
-                    .map(
-                      (g) => DropdownMenuItem<double>(
-                        value: g,
-                        child: Text('${g.toStringAsFixed(0)}%'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() => selectedGst = v);
-                },
-              ),
+              Obx(() => DropdownButtonFormField<double>(
+                    value: selectedGst.value,
+                    decoration: const InputDecoration(labelText: 'GST %'),
+                    items: gstOptions
+                        .map((g) => DropdownMenuItem<double>(
+                              value: g,
+                              child: Text('${g.toStringAsFixed(0)}%'),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) selectedGst.value = v;
+                    },
+                  )),
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
@@ -174,12 +159,12 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Active'),
-                value: isActive,
-                onChanged: (v) => setState(() => isActive = v),
-              ),
+              Obx(() => SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Active'),
+                    value: isActive.value,
+                    onChanged: (v) => isActive.value = v,
+                  )),
             ],
           ),
         ),

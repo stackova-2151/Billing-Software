@@ -24,36 +24,22 @@ class _CartWidgetState extends State<CartWidget> {
   late final TextEditingController tableController;
   late final TextEditingController customerController;
 
-  String _paymentMode = 'ONLINE';
+  OrdersController get _ordersController => Get.find<OrdersController>();
 
-  OrdersController get _ordersController => Get.isRegistered<OrdersController>()
-      ? Get.find<OrdersController>()
-      : Get.put(OrdersController());
-
-  void _log(String message) {
-    debugPrint('[CartWidget] $message');
-  }
+  void _log(String message) => debugPrint('[CartWidget] $message');
 
   Uri _getPrintApiUri() {
     const path = '/print';
     const port = 3000;
-
-    if (kIsWeb) {
-      return Uri.parse('http://localhost:$port$path');
-    }
-
+    if (kIsWeb) return Uri.parse('http://localhost:$port$path');
     if (defaultTargetPlatform == TargetPlatform.android) {
       return Uri.parse('http://10.0.2.2:$port$path');
     }
-
     return Uri.parse('http://localhost:$port$path');
   }
 
-  void _showSnackBar(
-    BuildContext context, {
-    required String message,
-    bool isError = false,
-  }) {
+  void _showSnackBar(BuildContext context,
+      {required String message, bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -62,25 +48,8 @@ class _CartWidgetState extends State<CartWidget> {
     );
   }
 
-  void _onCashPayTap() {
-    _log('UI: Toggle payment mode button clicked');
-    _log('State(before): paymentMode=$_paymentMode');
-
-    final newMode = _paymentMode == 'ONLINE' ? 'CASH' : 'ONLINE';
-    setState(() {
-      _paymentMode = newMode;
-    });
-
-    _log('State(after): paymentMode=$_paymentMode');
-    _showSnackBar(context, message: 'Selected: $_paymentMode');
-  }
-
   String _generateReceiptText() {
-    final lines = widget.cartController.cartLines;
-    final subtotal = widget.cartController.subtotal;
-    final gst = widget.cartController.gstAmount;
-    final total = widget.cartController.total;
-
+    final cart = widget.cartController;
     final buffer = StringBuffer();
     buffer.writeln('=========== RECEIPT ===========');
 
@@ -88,61 +57,49 @@ class _CartWidgetState extends State<CartWidget> {
     final customerName = customerController.text.trim();
     if (tableNo.isNotEmpty) buffer.writeln('Table: $tableNo');
     if (customerName.isNotEmpty) buffer.writeln('Customer: $customerName');
-    buffer.writeln('Payment: $_paymentMode');
+    buffer.writeln('Payment: ${cart.paymentMode.value}');
     buffer.writeln('--------------------------------');
 
-    for (final line in lines) {
-      final itemName = line.item.name;
-      final qty = line.qty.value;
-      final rate = line.item.price;
-      final lineTotal = line.lineTotal;
-      buffer.writeln(itemName);
+    for (final line in cart.cartLines) {
+      buffer.writeln(line.item.name);
       buffer.writeln(
-        '  $qty x ₹${rate.toStringAsFixed(0)} = ₹${lineTotal.toStringAsFixed(0)}',
+        '  ${line.qty.value} x ₹${line.item.price.toStringAsFixed(0)} = ₹${line.lineTotal.toStringAsFixed(0)}',
       );
     }
 
     buffer.writeln('--------------------------------');
-    buffer.writeln('Subtotal: ₹${subtotal.toStringAsFixed(0)}');
-    buffer.writeln('GST (5%): ₹${gst.toStringAsFixed(0)}');
-    buffer.writeln('TOTAL: ₹${total.toStringAsFixed(0)}');
+    buffer.writeln('Subtotal: ₹${cart.subtotal.toStringAsFixed(0)}');
+    buffer.writeln('GST (5%): ₹${cart.gstAmount.toStringAsFixed(0)}');
+    buffer.writeln('TOTAL: ₹${cart.total.toStringAsFixed(0)}');
     buffer.writeln('================================');
     return buffer.toString();
   }
 
   Future<void> printBill() async {
-    _log('UI: Print Bill clicked');
-    _log('State: paymentMode=$_paymentMode');
-
-    if (widget.cartController.cartLines.isEmpty) {
-      _log('Guard: cart is empty. Print aborted.');
+    final cart = widget.cartController;
+    if (cart.cartLines.isEmpty) {
       _showSnackBar(context, message: 'Cart is empty', isError: true);
       return;
     }
 
-    final receiptText = _generateReceiptText();
     final payload = <String, dynamic>{
-      'text': receiptText,
-      'paymentMode': _paymentMode,
+      'text': _generateReceiptText(),
+      'paymentMode': cart.paymentMode.value,
     };
 
     final uri = _getPrintApiUri();
-
-    _log('API: URL=$uri');
-    _log('API: Request payload=${jsonEncode(payload)}');
+    _log('API: URL=$uri payload=${jsonEncode(payload)}');
 
     try {
       final http.Client client = createHttpClient();
       try {
         final response = await client.post(
           uri,
-          headers: <String, String>{'Content-Type': 'application/json'},
+          headers: {'Content-Type': 'application/json'},
           body: jsonEncode(payload),
         );
 
-        _log('API: Response statusCode=${response.statusCode}');
-        _log('API: Response body=${response.body}');
-
+        _log('API: status=${response.statusCode} body=${response.body}');
         if (!mounted) return;
 
         final ok = response.statusCode >= 200 && response.statusCode < 300;
@@ -150,40 +107,30 @@ class _CartWidgetState extends State<CartWidget> {
           _showSnackBar(context, message: 'Printed successfully');
 
           final now = DateTime.now();
-          final orderId = 'ORD-${now.millisecondsSinceEpoch}';
-          final payment = _paymentMode == 'CASH'
+          final payment = cart.paymentMode.value == 'CASH'
               ? PosPaymentMode.cash
               : PosPaymentMode.online;
 
-          final lines = widget.cartController.cartLines
-              .map(
-                (l) => PosOrderLine(
-                  itemId: l.item.id,
-                  itemName: l.item.name,
-                  qty: l.qty.value,
-                  unitPrice: l.item.price,
-                ),
-              )
-              .toList();
-
           final order = PosOrder(
-            id: orderId,
+            id: 'ORD-${now.millisecondsSinceEpoch}',
             createdAt: now,
-            lines: lines,
-            subtotal: widget.cartController.subtotal,
-            gstAmount: widget.cartController.gstAmount,
-            total: widget.cartController.total,
+            lines: cart.cartLines
+                .map((l) => PosOrderLine(
+                      itemId: l.item.id,
+                      itemName: l.item.name,
+                      qty: l.qty.value,
+                      unitPrice: l.item.price,
+                    ))
+                .toList(),
+            subtotal: cart.subtotal,
+            gstAmount: cart.gstAmount,
+            total: cart.total,
             paymentMode: payment,
             customerName: customerController.text.trim(),
           );
 
-          _log(
-            'Data: Publishing printed order to OrdersController id=$orderId',
-          );
           _ordersController.addOrder(order);
-
-          // Clear cart after successful print.
-          widget.cartController.clear();
+          cart.clear();
         } else {
           _showSnackBar(
             context,
@@ -195,9 +142,7 @@ class _CartWidgetState extends State<CartWidget> {
         client.close();
       }
     } catch (e, st) {
-      _log('ERROR: Exception while printing: $e');
-      _log('ERROR: StackTrace: $st');
-
+      _log('ERROR: $e\n$st');
       if (!mounted) return;
       _showSnackBar(context, message: 'Print error: $e', isError: true);
     }
@@ -220,6 +165,7 @@ class _CartWidgetState extends State<CartWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cart = widget.cartController;
 
     return Container(
       width: 360,
@@ -249,15 +195,13 @@ class _CartWidgetState extends State<CartWidget> {
                     ),
                   ),
                 ),
-                Obx(() {
-                  return Text(
-                    '${widget.cartController.totalItems} items',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF64748B),
-                    ),
-                  );
-                }),
+                Obx(() => Text(
+                      '${cart.totalItems} items',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF64748B),
+                      ),
+                    )),
               ],
             ),
           ),
@@ -283,7 +227,7 @@ class _CartWidgetState extends State<CartWidget> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Obx(() {
-                if (widget.cartController.cartLines.isEmpty) {
+                if (cart.cartLines.isEmpty) {
                   return Center(
                     child: Text(
                       'No items yet',
@@ -294,15 +238,14 @@ class _CartWidgetState extends State<CartWidget> {
                     ),
                   );
                 }
-
                 return ListView.separated(
-                  itemCount: widget.cartController.cartLines.length,
+                  itemCount: cart.cartLines.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final line = widget.cartController.cartLines[index];
+                    final line = cart.cartLines[index];
                     return CartItemWidget(
                       line: line,
-                      cartController: widget.cartController,
+                      cartController: cart,
                     );
                   },
                 );
@@ -310,11 +253,7 @@ class _CartWidgetState extends State<CartWidget> {
             ),
           ),
           Obx(() {
-            final subtotal = widget.cartController.subtotal;
-            final gst = widget.cartController.gstAmount;
-            final total = widget.cartController.total;
-            final hasItems = widget.cartController.cartLines.isNotEmpty;
-
+            final hasItems = cart.cartLines.isNotEmpty;
             return Container(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               decoration: const BoxDecoration(
@@ -331,24 +270,24 @@ class _CartWidgetState extends State<CartWidget> {
                 children: [
                   _TotalRow(
                     label: 'Subtotal',
-                    value: '₹${subtotal.toStringAsFixed(0)}',
+                    value: '₹${cart.subtotal.toStringAsFixed(0)}',
                   ),
                   const SizedBox(height: 8),
                   _TotalRow(
                     label: 'GST (5%)',
-                    value: '₹${gst.toStringAsFixed(0)}',
+                    value: '₹${cart.gstAmount.toStringAsFixed(0)}',
                   ),
                   const SizedBox(height: 10),
                   _TotalRow(
                     label: 'Total',
-                    value: '₹${total.toStringAsFixed(0)}',
+                    value: '₹${cart.total.toStringAsFixed(0)}',
                     emphasis: true,
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Text(
-                        'Payment Mode: $_paymentMode',
+                        'Payment Mode: ${cart.paymentMode.value}',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFF475569),
@@ -361,11 +300,11 @@ class _CartWidgetState extends State<CartWidget> {
                     children: [
                       Expanded(
                         child: _PayButton(
-                          label: _paymentMode == 'ONLINE'
+                          label: cart.paymentMode.value == 'ONLINE'
                               ? 'CASH PAY'
                               : 'ONLINE PAY',
                           icon: Icons.payments_outlined,
-                          onTap: hasItems ? _onCashPayTap : null,
+                          onTap: hasItems ? cart.togglePaymentMode : null,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -436,7 +375,6 @@ class _TotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Row(
       children: [
         Expanded(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../controllers/auth_controller.dart';
 import '../controllers/app_screen_controller.dart';
 import '../controllers/cart_controller.dart';
 import '../controllers/menu_controller.dart' as pos;
@@ -9,43 +10,23 @@ import '../widgets/category_chips_widget.dart';
 import '../widgets/item_card_widget.dart';
 import '../widgets/menu_items_management_widget.dart';
 import '../widgets/sidebar_widget.dart';
+import 'bill_history_screen.dart';
 import 'pos_dashboard_view.dart';
 import 'profile_screen.dart';
 
-class PosScreen extends StatefulWidget {
+class PosScreen extends StatelessWidget {
   const PosScreen({super.key});
-
-  @override
-  State<PosScreen> createState() => _PosScreenState();
-}
-
-class _PosScreenState extends State<PosScreen> {
-  late final pos.MenuController menuController;
-  late final CartController cartController;
-
-  late final AppScreenController screenController;
 
   static const Color pageBg = Color(0xFFFFFFFF);
   static const Color borderColor = Color(0xFFE5E5E5);
   static const Color textColor = Color(0xFF2E2E2E);
 
   @override
-  void initState() {
-    super.initState();
-    menuController = Get.isRegistered<pos.MenuController>()
-        ? Get.find<pos.MenuController>()
-        : Get.put(pos.MenuController());
-    cartController = Get.isRegistered<CartController>()
-        ? Get.find<CartController>()
-        : Get.put(CartController());
-
-    screenController = Get.isRegistered<AppScreenController>()
-        ? Get.find<AppScreenController>()
-        : Get.put(AppScreenController());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final menuController = Get.find<pos.MenuController>();
+    final cartController = Get.find<CartController>();
+    final screenController = Get.find<AppScreenController>();
+
     return Scaffold(
       backgroundColor: pageBg,
       body: SafeArea(
@@ -65,11 +46,9 @@ class _PosScreenState extends State<PosScreen> {
                     screenController.setScreen(AppScreenType.billsHistory),
                 onSettingsTap: () =>
                     screenController.setScreen(AppScreenType.settings),
-                onProfileTap: () {
-                  debugPrint('[PosScreen] Profile menu tapped');
-                  screenController.setScreen(AppScreenType.profile);
-                },
-                onLogoutTap: () {},
+                onProfileTap: () =>
+                    screenController.setScreen(AppScreenType.profile),
+                onLogoutTap: () => Get.find<AuthController>().signOut(),
               );
             }),
             Expanded(
@@ -91,7 +70,7 @@ class _PosScreenState extends State<PosScreen> {
                 }
 
                 if (screen == AppScreenType.billsHistory) {
-                  return const _PlaceholderScreen(title: 'Bills History');
+                  return const BillHistoryScreen();
                 }
 
                 if (screen == AppScreenType.settings) {
@@ -100,15 +79,10 @@ class _PosScreenState extends State<PosScreen> {
 
                 return Column(
                   children: [
-                    _CenterHeader(
-                      appName: 'Restro POS',
-                      cashierName: 'Cashier',
-                    ),
+                    _CenterHeader(appName: 'Restro POS', cashierName: 'Cashier'),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                      child: _SearchBar(
-                        onChanged: menuController.setSearchQuery,
-                      ),
+                      child: _SearchBar(onChanged: menuController.setSearchQuery),
                     ),
                     Obx(() {
                       return CategoryChipsWidget(
@@ -129,21 +103,22 @@ class _PosScreenState extends State<PosScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Obx(() {
+                            if (menuController.productController.isLoading.value) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
                             final items = menuController.filteredItems;
-
                             return GridView.builder(
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 4,
-                                    crossAxisSpacing: 30,
-                                    mainAxisSpacing: 30,
-                                    childAspectRatio: 1.0,
-                                  ),
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 30,
+                                mainAxisSpacing: 30,
+                                childAspectRatio: 1.0,
+                              ),
                               itemCount: items.length,
                               itemBuilder: (context, index) {
-                                final item = items[index];
                                 return ItemCardWidget(
-                                  item: item,
+                                  item: items[index],
                                   cartController: cartController,
                                   index: index,
                                 );
@@ -184,7 +159,7 @@ class _PlaceholderScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _PosScreenState.borderColor),
+        border: Border.all(color: PosScreen.borderColor),
       ),
       child: Align(
         alignment: Alignment.topLeft,
@@ -192,7 +167,7 @@ class _PlaceholderScreen extends StatelessWidget {
           title,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w900,
-            color: _PosScreenState.textColor,
+            color: PosScreen.textColor,
           ),
         ),
       ),
@@ -230,7 +205,7 @@ class _CenterHeader extends StatelessWidget {
               appName,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
-                color: _PosScreenState.textColor,
+                color: PosScreen.textColor,
               ),
             ),
           ),
@@ -240,7 +215,7 @@ class _CenterHeader extends StatelessWidget {
             cashierName,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
-              color: _PosScreenState.textColor,
+              color: PosScreen.textColor,
             ),
           ),
         ],
@@ -249,54 +224,42 @@ class _CenterHeader extends StatelessWidget {
   }
 }
 
-class _LiveDateTime extends StatefulWidget {
+class _LiveDateTime extends StatelessWidget {
   const _LiveDateTime();
 
-  @override
-  State<_LiveDateTime> createState() => _LiveDateTimeState();
-}
-
-class _LiveDateTimeState extends State<_LiveDateTime> {
-  late DateTime now;
-
-  @override
-  void initState() {
-    super.initState();
-    now = DateTime.now();
-    Future.doWhile(() async {
-      await Future<void>.delayed(const Duration(seconds: 1));
-      if (!mounted) return false;
-      setState(() {
-        now = DateTime.now();
-      });
-      return true;
-    });
-  }
-
-  String _two(int v) => v.toString().padLeft(2, '0');
+  static String _two(int v) => v.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final d = now;
-    final date = '${_two(d.day)}/${_two(d.month)}/${d.year}';
-    final time = '${_two(d.hour)}:${_two(d.minute)}';
+    final now = DateTime.now().obs;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7F4),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _PosScreenState.borderColor),
-      ),
-      child: Text(
-        '$date  $time',
-        style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: const Color(0xFF2E2E2E),
+    // Tick every second
+    Stream.periodic(const Duration(seconds: 1)).listen((_) {
+      now.value = DateTime.now();
+    });
+
+    return Obx(() {
+      final d = now.value;
+      final date = '${_two(d.day)}/${_two(d.month)}/${d.year}';
+      final time = '${_two(d.hour)}:${_two(d.minute)}';
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F7F4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: PosScreen.borderColor),
         ),
-      ),
-    );
+        child: Text(
+          '$date  $time',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF2E2E2E),
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -316,11 +279,11 @@ class _SearchBar extends StatelessWidget {
         fillColor: const Color(0xFFF5F7F4),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: _PosScreenState.borderColor),
+          borderSide: const BorderSide(color: PosScreen.borderColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: _PosScreenState.borderColor),
+          borderSide: const BorderSide(color: PosScreen.borderColor),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),

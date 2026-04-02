@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,50 +14,39 @@ class ProfileController extends GetxController {
   final Rx<File?> profileImageFile = Rx<File?>(null);
   final RxBool isLoading = false.obs;
 
-  void _log(String message) {
-    debugPrint('[ProfileController] $message');
+  User? get _firebaseUser => FirebaseAuth.instance.currentUser;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadFromFirebase();
   }
 
-  void setInitialData({
-    required String name,
-    required String phone,
-    required String email,
-    required String profileImageUrl,
-  }) {
-    _log('setInitialData called');
-    this.name.value = name;
-    this.phone.value = phone;
-    this.email.value = email;
-    this.profileImageUrl.value = profileImageUrl;
-    _log(
-      'Initial data set: name=$name, phone=$phone, email=$email, profileImageUrl=$profileImageUrl',
-    );
+  void _loadFromFirebase() {
+    final user = _firebaseUser;
+    if (user == null) return;
+    name.value = user.displayName ?? '';
+    email.value = user.email ?? '';
+    profileImageUrl.value = user.photoURL ?? '';
+    // phone is not stored in FirebaseAuth by default, keep empty until user fills it
+    phone.value = user.phoneNumber ?? '';
   }
 
   Future<void> pickProfileImage() async {
-    _log('pickProfileImage called');
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
       );
 
-      if (image == null) {
-        _log('User cancelled image picker');
-        return;
-      }
+      if (image == null) return;
 
       if (kIsWeb) {
         profileImageUrl.value = image.path;
-        _log('Web: profileImageUrl updated to ${image.path}');
       } else {
-        final file = File(image.path);
-        profileImageFile.value = file;
-        _log('Mobile: profileImageFile updated to ${file.path}');
+        profileImageFile.value = File(image.path);
       }
-    } catch (e, st) {
-      _log('ERROR: pickProfileImage failed: $e');
-      _log('ERROR: StackTrace: $st');
+    } catch (e) {
       Get.snackbar(
         'Error',
         'Failed to pick image',
@@ -68,14 +58,11 @@ class ProfileController extends GetxController {
   bool validateInputs() {
     final nameValid = name.value.trim().isNotEmpty;
     final phoneValid = RegExp(r'^\d{10,15}$').hasMatch(phone.value.trim());
-    _log('validateInputs: nameValid=$nameValid, phoneValid=$phoneValid');
     return nameValid && phoneValid;
   }
 
   Future<void> saveProfile() async {
-    _log('saveProfile called');
     if (!validateInputs()) {
-      _log('Validation failed');
       Get.snackbar(
         'Validation Error',
         'Name is required and phone must be 10-15 digits',
@@ -85,47 +72,28 @@ class ProfileController extends GetxController {
     }
 
     isLoading.value = true;
-    _log('isLoading set to true');
-
-    final payload = <String, dynamic>{
-      'name': name.value.trim(),
-      'phone': phone.value.trim(),
-      'email': email.value.trim(),
-      if (kIsWeb && profileImageUrl.value.isNotEmpty)
-        'profileImageUrl': profileImageUrl.value,
-      if (!kIsWeb && profileImageFile.value != null)
-        'profileImage': profileImageFile.value!.path,
-    };
-    _log('API: Request payload=$payload');
-
     try {
-      // Simulated API call; replace with real endpoint
-      await Future.delayed(const Duration(seconds: 1));
-
-      _log('API: Simulated success response');
+      await _firebaseUser?.updateDisplayName(name.value.trim());
+      // Reload so currentUser reflects the update
+      await _firebaseUser?.reload();
       Get.snackbar(
         'Success',
         'Profile updated successfully',
         snackPosition: SnackPosition.BOTTOM,
       );
-    } catch (e, st) {
-      _log('ERROR: saveProfile failed: $e');
-      _log('ERROR: StackTrace: $st');
+    } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to update profile',
+        'Failed to update profile: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       isLoading.value = false;
-      _log('isLoading set to false');
     }
   }
 
   void clearProfileImage() {
-    _log('clearProfileImage called');
     profileImageFile.value = null;
     profileImageUrl.value = '';
-    _log('Profile image cleared');
   }
 }

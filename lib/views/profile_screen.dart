@@ -7,23 +7,9 @@ import '../controllers/profile_controller.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  void _log(String message) {
-    debugPrint('[ProfileScreen] $message');
-  }
-
   @override
   Widget build(BuildContext context) {
-    _log('ProfileScreen build called');
-    final controller = Get.put(ProfileController());
-
-    // Initialize with dummy data for demo
-    controller.setInitialData(
-      name: 'John Doe',
-      phone: '9876543210',
-      email: 'john.doe@example.com',
-      profileImageUrl: '',
-    );
-
+    final controller = Get.find<ProfileController>();
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth > 800;
 
@@ -58,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                       () => _ProfileField(
                         label: 'Name',
                         value: controller.name.value,
-                        onChanged: controller.name,
+                        onChanged: (val) => controller.name(val),
                         icon: Icons.person,
                       ),
                     ),
@@ -68,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                       () => _ProfileField(
                         label: 'Phone',
                         value: controller.phone.value,
-                        onChanged: controller.phone,
+                        onChanged: (val) => controller.phone(val),
                         icon: Icons.phone,
                         keyboardType: TextInputType.phone,
                       ),
@@ -134,13 +120,8 @@ class _ProfileImageSection extends StatelessWidget {
 
   const _ProfileImageSection({required this.controller});
 
-  void _log(String message) {
-    debugPrint('[ProfileImageSection] $message');
-  }
-
   @override
   Widget build(BuildContext context) {
-    _log('ProfileImageSection build');
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
@@ -200,13 +181,8 @@ class _ProfileField extends StatelessWidget {
     this.readOnly = false,
   });
 
-  void _log(String message) {
-    debugPrint('[ProfileField] $message');
-  }
-
   @override
   Widget build(BuildContext context) {
-    _log('ProfileField build: label=$label, readOnly=$readOnly');
     final theme = Theme.of(context);
     return TextField(
       controller: TextEditingController(text: value)

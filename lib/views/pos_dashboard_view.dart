@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/orders_controller.dart';
 import '../controllers/pos_dashboard_controller.dart';
 
 class PosDashboardView extends StatelessWidget {
@@ -18,13 +17,7 @@ class PosDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     _log('UI: build()');
 
-    final ordersController = Get.isRegistered<OrdersController>()
-        ? Get.find<OrdersController>()
-        : Get.put(OrdersController());
-
-    final controller = Get.isRegistered<PosDashboardController>()
-        ? Get.find<PosDashboardController>()
-        : Get.put(PosDashboardController(ordersController: ordersController));
+    final controller = Get.find<PosDashboardController>();
 
     final theme = Theme.of(context);
 

@@ -13,13 +13,8 @@ class MenuManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productController = Get.isRegistered<ProductController>()
-        ? Get.find<ProductController>()
-        : Get.put(ProductController());
-
-    final categoryController = Get.isRegistered<CategoryController>()
-        ? Get.find<CategoryController>()
-        : Get.put(CategoryController());
+    final productController = Get.find<ProductController>();
+    final categoryController = Get.find<CategoryController>();
 
     return DefaultTabController(
       length: 2,

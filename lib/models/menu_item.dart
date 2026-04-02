@@ -1,5 +1,5 @@
 class MenuItem {
-  final int id;
+  final String id;
   final String name;
   final double price;
   final String image;
@@ -28,4 +28,35 @@ class MenuItem {
     this.prepMinutes = 0,
     this.discountPercent = 0,
   });
+
+  Map<String, dynamic> toMap() => {
+        'name': name,
+        'price': price,
+        'image': image,
+        'category': category,
+        'isVeg': isVeg,
+        'isAvailable': isAvailable,
+        'gstPercent': gstPercent,
+        'itemCode': itemCode,
+        'isActive': isActive,
+        'description': description,
+        'prepMinutes': prepMinutes,
+        'discountPercent': discountPercent,
+      };
+
+  factory MenuItem.fromMap(String docId, Map<String, dynamic> map) => MenuItem(
+        id: docId,
+        name: map['name'] ?? '',
+        price: (map['price'] ?? 0).toDouble(),
+        image: map['image'] ?? '',
+        category: map['category'] ?? '',
+        isVeg: map['isVeg'] ?? true,
+        isAvailable: map['isAvailable'] ?? true,
+        gstPercent: (map['gstPercent'] ?? 5).toDouble(),
+        itemCode: map['itemCode'] ?? '',
+        isActive: map['isActive'] ?? true,
+        description: map['description'] ?? '',
+        prepMinutes: (map['prepMinutes'] ?? 0).toInt(),
+        discountPercent: (map['discountPercent'] ?? 0).toDouble(),
+      );
 }

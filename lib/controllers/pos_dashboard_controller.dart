@@ -57,10 +57,7 @@ class PosDashboardController extends GetxController {
     super.onInit();
     _log('Lifecycle: onInit');
 
-    // Seed demo data so dashboard looks rich immediately.
-    ordersController.seedIfEmpty();
-
-    // Real-time updates: recompute whenever a new order is added.
+    // Real-time updates: recompute whenever orders change from Firestore.
     ever<List<PosOrder>>(ordersController.orders, (_) {
       _log('Reactive: orders changed -> recompute dashboard');
       _compute();

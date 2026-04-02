@@ -23,13 +23,8 @@ class MenuController extends GetxController {
   void onInit() {
     super.onInit();
 
-    productController = Get.isRegistered<ProductController>()
-        ? Get.find<ProductController>()
-        : Get.put(ProductController());
-
-    categoryController = Get.isRegistered<CategoryController>()
-        ? Get.find<CategoryController>()
-        : Get.put(CategoryController());
+    productController = Get.find<ProductController>();
+    categoryController = Get.find<CategoryController>();
 
     _syncCategories();
 
@@ -116,7 +111,7 @@ class MenuController extends GetxController {
   }
 
   void updateItem({
-    required int id,
+    required String id,
     required String name,
     required String category,
     required double price,
@@ -142,7 +137,7 @@ class MenuController extends GetxController {
     );
   }
 
-  void deleteItem(int id) {
+  void deleteItem(String id) {
     productController.deleteProduct(id);
   }
 }

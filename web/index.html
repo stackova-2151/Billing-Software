@@ -33,6 +33,29 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCB6BKtx7XrUam37z_bCkR9zhVCLaKh_g0",
+    authDomain: "billingapp-94811.firebaseapp.com",
+    projectId: "billingapp-94811",
+    storageBucket: "billingapp-94811.firebasestorage.app",
+    messagingSenderId: "845084546928",
+    appId: "1:845084546928:web:1222f166e5ec6652f621b5",
+    measurementId: "G-4VNHYC8KDM"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
