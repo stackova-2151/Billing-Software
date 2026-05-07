@@ -43,6 +43,7 @@ class PosOrder {
   final double total;
   final PosPaymentMode paymentMode;
   final String customerName;
+  final String tableNo;
 
   const PosOrder({
     required this.id,
@@ -53,6 +54,7 @@ class PosOrder {
     required this.total,
     required this.paymentMode,
     this.customerName = '',
+    this.tableNo = '',
   });
 
   int get itemsCount => lines.fold(0, (sum, e) => sum + e.qty);
@@ -66,6 +68,7 @@ class PosOrder {
       'total': total,
       'paymentMode': paymentMode.name,
       'customerName': customerName,
+      'tableNo': tableNo,
     };
   }
 
@@ -84,6 +87,7 @@ class PosOrder {
         orElse: () => PosPaymentMode.cash,
       ),
       customerName: map['customerName'] ?? '',
+      tableNo: map['tableNo'] ?? '',
     );
   }
 }

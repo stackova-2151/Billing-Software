@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../controllers/menu_controller.dart' as app;
 import 'add_menu_item_dialog.dart';
-import 'menu_items_table.dart';
+import 'premium_menu_table.dart';
 
 class MenuItemsManagementWidget extends StatelessWidget {
   final app.MenuController menuController;
@@ -141,7 +141,7 @@ class MenuItemsManagementWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE5E5E5)),
               ),
-              child: MenuItemsTable(menuController: menuController),
+              child: PremiumMenuTable(menuController: menuController),
             ),
           ),
         ],

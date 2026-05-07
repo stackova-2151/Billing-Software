@@ -6,11 +6,7 @@ class MenuTile extends StatelessWidget {
   final MenuItem item;
   final VoidCallback onTap;
 
-  const MenuTile({
-    super.key,
-    required this.item,
-    required this.onTap,
-  });
+  const MenuTile({super.key, required this.item, required this.onTap});
 
   Color _pastelColor(int seed) {
     final colors = <Color>[
@@ -57,7 +53,9 @@ class MenuTile extends StatelessWidget {
                     backgroundColor: Colors.white,
                     child: Icon(
                       Icons.fastfood,
-                      color: item.isVeg ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                      color: item.isVeg
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFDC2626),
                     ),
                   ),
                 ),

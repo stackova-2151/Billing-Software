@@ -5,6 +5,9 @@ enum AppScreenType {
   pos,
   menuItems,
   billsHistory,
+  reports,
+  stock,
+  expense,
   settings,
   profile,
 }

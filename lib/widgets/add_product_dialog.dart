@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/category_controller.dart';
 import '../controllers/product_controller.dart';
 import '../models/menu_item.dart';
+import '../widgets/category_dropdown_with_add.dart';
 
 class AddProductDialog extends StatefulWidget {
   final ProductController productController;
@@ -104,24 +105,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
               const SizedBox(height: 12),
               Obx(() {
-                final categories = widget.categoryController.activeCategoryNames;
-                final value = categories.contains(selectedCategory.value)
-                    ? selectedCategory.value
-                    : (categories.isNotEmpty ? categories.first : '');
-
-                if (value != selectedCategory.value) {
-                  selectedCategory.value = value;
-                }
-
-                return DropdownButtonFormField<String>(
-                  value: value.isEmpty ? null : value,
-                  decoration: const InputDecoration(labelText: 'Category'),
-                  items: categories
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) selectedCategory.value = v;
-                  },
+                return CategoryDropdownWithAdd(
+                  value: selectedCategory.value,
+                  label: 'Category',
+                  onChanged: (v) => selectedCategory.value = v,
+                  categoryController: widget.categoryController,
                 );
               }),
               const SizedBox(height: 12),

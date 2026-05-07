@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/category_controller.dart';
+import '../services/category_service.dart';
 
 class CategoryManagement extends StatefulWidget {
   final CategoryController categoryController;
@@ -17,7 +18,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
   final TextEditingController orderController = TextEditingController();
 
   final RxBool active = true.obs;
-  final RxnInt editingId = RxnInt();
+  final Rxn<String> editingId = Rxn<String>();
 
   @override
   void dispose() {
@@ -33,7 +34,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
     active.value = true;
   }
 
-  void _save() {
+  void _save() async {
     final name = nameController.text.trim();
     final order = int.tryParse(orderController.text.trim()) ?? -1;
 
@@ -42,22 +43,27 @@ class _CategoryManagementState extends State<CategoryManagement> {
       return;
     }
 
-    if (editingId.value == null) {
-      widget.categoryController.addCategory(
-        name: name,
-        displayOrder: order,
-        isActive: active.value,
-      );
-    } else {
-      widget.categoryController.editCategory(
-        id: editingId.value!,
-        name: name,
-        displayOrder: order,
-        isActive: active.value,
-      );
+    try {
+      if (editingId.value == null) {
+        await widget.categoryController.addCategory(
+          name: name,
+          displayOrder: order,
+          isActive: active.value,
+        );
+        Get.snackbar('Success', 'Category added successfully');
+      } else {
+        await widget.categoryController.editCategory(
+          id: editingId.value!,
+          name: name,
+          displayOrder: order,
+          isActive: active.value,
+        );
+        Get.snackbar('Success', 'Category updated successfully');
+      }
+      _reset();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to save category: $e');
     }
-
-    _reset();
   }
 
   @override
@@ -119,69 +125,71 @@ class _CategoryManagementState extends State<CategoryManagement> {
         Expanded(
           child: Obx(() {
             final list = widget.categoryController.categories;
+            if (widget.categoryController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (list.isEmpty) {
+              return const Center(
+                child: Text('No categories yet. Add one above!'),
+              );
+            }
             return ListView.separated(
               itemCount: list.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final c = list[index];
-                return Obx(() => Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE5E5E5)),
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE5E5E5)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          c.name,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              c.name.value,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
+                      SizedBox(
+                        width: 110,
+                        child: Text(
+                          'Order: ${c.displayOrder}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w700,
                           ),
-                          SizedBox(
-                            width: 110,
-                            child: Text(
-                              'Order: ${c.displayOrder.value}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: const Color(0xFF64748B),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          Switch.adaptive(
-                            value: c.isActive.value,
-                            onChanged: (v) {
-                              widget.categoryController.editCategory(
-                                id: c.id,
-                                name: c.name.value,
-                                displayOrder: c.displayOrder.value,
-                                isActive: v,
-                              );
-                            },
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              editingId.value = c.id;
-                              nameController.text = c.name.value;
-                              orderController.text =
-                                  c.displayOrder.value.toString();
-                              active.value = c.isActive.value;
-                            },
-                            icon: const Icon(Icons.edit_outlined),
-                            tooltip: 'Edit',
-                          ),
-                          IconButton(
-                            onPressed: () => widget.categoryController
-                                .deleteCategory(c.id),
-                            icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Delete',
-                          ),
-                        ],
+                        ),
                       ),
-                    ));
+                      Switch.adaptive(
+                        value: c.isActive,
+                        onChanged: (v) {
+                          widget.categoryController.toggleCategoryStatus(c.id, v);
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          editingId.value = c.id;
+                          nameController.text = c.name;
+                          orderController.text = c.displayOrder.toString();
+                          active.value = c.isActive;
+                        },
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: 'Edit',
+                      ),
+                      IconButton(
+                        onPressed: () => widget.categoryController
+                            .deleteCategory(c.id),
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: 'Delete',
+                      ),
+                    ],
+                  ),
+                );
               },
             );
           }),

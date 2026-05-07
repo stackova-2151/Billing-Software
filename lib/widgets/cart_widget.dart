@@ -9,6 +9,8 @@ import '../controllers/cart_controller.dart';
 import '../controllers/orders_controller.dart';
 import '../http_client_factory.dart';
 import '../models/pos_order.dart';
+import '../services/stock_service.dart';
+import '../utils/responsive_helper.dart';
 import 'cart_item_widget.dart';
 
 class CartWidget extends StatefulWidget {
@@ -23,6 +25,8 @@ class CartWidget extends StatefulWidget {
 class _CartWidgetState extends State<CartWidget> {
   late final TextEditingController tableController;
   late final TextEditingController customerController;
+  bool _isPrinting = false;
+  final StockService _stockService = StockService();
 
   OrdersController get _ordersController => Get.find<OrdersController>();
 
@@ -43,7 +47,9 @@ class _CartWidgetState extends State<CartWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : null,
+        backgroundColor: isError ? Colors.red : const Color(0xFF16A34A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -82,15 +88,25 @@ class _CartWidgetState extends State<CartWidget> {
       return;
     }
 
-    final payload = <String, dynamic>{
-      'text': _generateReceiptText(),
-      'paymentMode': cart.paymentMode.value,
-    };
-
-    final uri = _getPrintApiUri();
-    _log('API: URL=$uri payload=${jsonEncode(payload)}');
+    setState(() => _isPrinting = true);
 
     try {
+      // Validate and reduce stock before printing
+      final itemQuantities = <String, int>{};
+      for (final line in cart.cartLines) {
+        itemQuantities[line.item.id] = line.qty.value;
+      }
+      
+      await _stockService.reduceStockBatch(itemQuantities);
+
+      final payload = <String, dynamic>{
+        'text': _generateReceiptText(),
+        'paymentMode': cart.paymentMode.value,
+      };
+
+      final uri = _getPrintApiUri();
+      _log('API: URL=$uri payload=${jsonEncode(payload)}');
+
       final http.Client client = createHttpClient();
       try {
         final response = await client.post(
@@ -129,8 +145,10 @@ class _CartWidgetState extends State<CartWidget> {
             customerName: customerController.text.trim(),
           );
 
-          _ordersController.addOrder(order);
+          await _ordersController.addOrder(order);
           cart.clear();
+          tableController.clear();
+          customerController.clear();
         } else {
           _showSnackBar(
             context,
@@ -144,7 +162,9 @@ class _CartWidgetState extends State<CartWidget> {
     } catch (e, st) {
       _log('ERROR: $e\n$st');
       if (!mounted) return;
-      _showSnackBar(context, message: 'Print error: $e', isError: true);
+      _showSnackBar(context, message: e.toString(), isError: true);
+    } finally {
+      if (mounted) setState(() => _isPrinting = false);
     }
   }
 
@@ -166,14 +186,21 @@ class _CartWidgetState extends State<CartWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cart = widget.cartController;
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final cartWidth = ResponsiveHelper.getCartWidth(context);
 
     return Container(
-      width: 360,
+      width: cartWidth,
       color: const Color(0xFFF8FAFC),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 16,
+              isMobile ? 12 : 16,
+              isMobile ? 12 : 16,
+              14,
+            ),
             decoration: const BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -206,7 +233,7 @@ class _CartWidgetState extends State<CartWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             child: Column(
               children: [
                 _InputField(
@@ -225,16 +252,42 @@ class _CartWidgetState extends State<CartWidget> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 16),
               child: Obx(() {
                 if (cart.cartLines.isEmpty) {
                   return Center(
-                    child: Text(
-                      'No items yet',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFF64748B),
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          child: const Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 40,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No items yet',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Add items to get started',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -255,7 +308,12 @@ class _CartWidgetState extends State<CartWidget> {
           Obx(() {
             final hasItems = cart.cartLines.isNotEmpty;
             return Container(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 12 : 16,
+                14,
+                isMobile ? 12 : 16,
+                isMobile ? 12 : 16,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -310,9 +368,9 @@ class _CartWidgetState extends State<CartWidget> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: _PayButton(
-                          label: 'Print Bill',
+                          label: _isPrinting ? 'Printing...' : 'Print Bill',
                           icon: Icons.print,
-                          onTap: hasItems ? printBill : null,
+                          onTap: hasItems && !_isPrinting ? printBill : null,
                         ),
                       ),
                     ],

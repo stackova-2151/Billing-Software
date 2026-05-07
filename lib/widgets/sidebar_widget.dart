@@ -9,6 +9,9 @@ class SidebarWidget extends StatelessWidget {
   final VoidCallback onPosTap;
   final VoidCallback onMenuItemsTap;
   final VoidCallback onBillsHistoryTap;
+  final VoidCallback onReportsTap;
+  final VoidCallback onStockTap;
+  final VoidCallback onExpenseTap;
   final VoidCallback onSettingsTap;
   final VoidCallback onProfileTap;
   final VoidCallback onLogoutTap;
@@ -21,6 +24,9 @@ class SidebarWidget extends StatelessWidget {
     required this.onPosTap,
     required this.onMenuItemsTap,
     required this.onBillsHistoryTap,
+    required this.onReportsTap,
+    required this.onStockTap,
+    required this.onExpenseTap,
     required this.onSettingsTap,
     required this.onProfileTap,
     required this.onLogoutTap,
@@ -103,6 +109,27 @@ class SidebarWidget extends StatelessWidget {
             icon: Icons.receipt_long_outlined,
             active: activeSection == AppScreenType.billsHistory,
             onTap: onBillsHistoryTap,
+          ),
+          const SizedBox(height: 8),
+          _NavItem(
+            label: 'Reports',
+            icon: Icons.bar_chart_outlined,
+            active: activeSection == AppScreenType.reports,
+            onTap: onReportsTap,
+          ),
+          const SizedBox(height: 8),
+          _NavItem(
+            label: 'Stock',
+            icon: Icons.inventory_2_outlined,
+            active: activeSection == AppScreenType.stock,
+            onTap: onStockTap,
+          ),
+          const SizedBox(height: 8),
+          _NavItem(
+            label: 'Expenses',
+            icon: Icons.account_balance_wallet_outlined,
+            active: activeSection == AppScreenType.expense,
+            onTap: onExpenseTap,
           ),
           const SizedBox(height: 8),
           // _NavItem(

@@ -22,9 +22,9 @@ class AuthController extends GetxController {
 
   void _handleAuthChange(User? u) {
     if (u == null) {
-      Get.offAll(() => const LoginScreen());
+      Get.offAllNamed('/');
     } else {
-      Get.offAll(() => const PosScreen(), binding: AppBindings());
+      Get.offAllNamed('/pos');
     }
   }
 

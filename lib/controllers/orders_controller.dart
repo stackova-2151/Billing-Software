@@ -46,4 +46,10 @@ class OrdersController extends GetxController {
         .subtract(Duration(days: days - 1));
     return orders.where((o) => !o.createdAt.isBefore(start)).toList();
   }
+
+  Future<void> loadOrders() async {
+    _log('Manually loading orders');
+    isLoading.value = true;
+    await _orderService.refreshOrders();
+  }
 }

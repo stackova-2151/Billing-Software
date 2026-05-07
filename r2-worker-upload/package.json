@@ -1,0 +1,10 @@
+{
+  "name": "billing-software-r2-upload",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.80.0"
+  }
+}

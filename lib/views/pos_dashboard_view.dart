@@ -5,9 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/pos_dashboard_controller.dart';
+import 'pos_dashboard_view_premium.dart';
 
 class PosDashboardView extends StatelessWidget {
   const PosDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Use premium animated dashboard
+    return const PosDashboardViewPremium();
+  }
+}
 
   void _log(String message) {
     debugPrint('[PosDashboardView] $message');
@@ -239,8 +247,7 @@ class PosDashboardView extends StatelessWidget {
       ),
     );
   }
-}
-
+  
 class _Card extends StatelessWidget {
   final String title;
   final Widget child;

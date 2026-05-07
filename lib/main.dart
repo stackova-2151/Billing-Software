@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'bindings/app_bindings.dart';
 import 'firebase_options.dart';
 import 'views/login_screen.dart';
+import 'views/pos_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,19 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      initialRoute: '/',
+      getPages: [
+        GetPage(
+          name: '/',
+          page: () => const LoginScreen(),
+          binding: AppBindings(),
+        ),
+        GetPage(
+          name: '/pos',
+          page: () => const PosScreen(),
+          binding: AppBindings(),
+        ),
+      ],
     );
   }
 }

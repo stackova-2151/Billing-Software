@@ -50,4 +50,10 @@ class OrderService {
         .map((doc) => PosOrder.fromMap(doc.id, doc.data()))
         .toList();
   }
+
+  Future<void> refreshOrders() async {
+    // Since we're using Firestore streams, this method doesn't need to do anything
+    // The stream will automatically update when data changes
+    // This method exists for consistency with the controller interface
+  }
 }

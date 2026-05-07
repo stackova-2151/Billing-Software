@@ -246,11 +246,27 @@ class _ItemAvatar extends StatelessWidget {
       );
     }
 
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: const Color(0xFFF1F5F9),
-      backgroundImage: NetworkImage(url),
-      onBackgroundImageError: (_, __) {},
+    return ClipOval(
+      child: SizedBox(
+        width: 36,
+        height: 36,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return const ColoredBox(
+              color: Color(0xFFF1F5F9),
+              child: Center(
+                child: Icon(
+                  Icons.broken_image_outlined,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

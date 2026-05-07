@@ -1,0 +1,12 @@
+name = "billing-software-r2-upload"
+main = "src/index.ts"
+compatibility_date = "2024-11-11"
+
+# Bind your R2 bucket to the Worker as env.BUCKET
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "billing-software"
+
+[vars]
+# Public bucket host, e.g. "pub-xxxxxxxxxxxxxxxx.r2.dev" or your custom domain host.
+PUBLIC_BUCKET_HOST = "https://pub-221e0bcac7604d768c439e01d1a02930.r2.dev"
