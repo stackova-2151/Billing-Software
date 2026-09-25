@@ -9,6 +9,7 @@ import '../controllers/cart_controller.dart';
 import '../controllers/orders_controller.dart';
 import '../http_client_factory.dart';
 import '../models/pos_order.dart';
+import '../services/bluetooth_print_service.dart';
 import '../services/stock_service.dart';
 import '../utils/responsive_helper.dart';
 import 'cart_item_widget.dart';
@@ -91,73 +92,40 @@ class _CartWidgetState extends State<CartWidget> {
     setState(() => _isPrinting = true);
 
     try {
-      // Validate and reduce stock before printing
       final itemQuantities = <String, int>{};
       for (final line in cart.cartLines) {
         itemQuantities[line.item.id] = line.qty.value;
       }
-      
       await _stockService.reduceStockBatch(itemQuantities);
 
-      final payload = <String, dynamic>{
-        'text': _generateReceiptText(),
-        'paymentMode': cart.paymentMode.value,
-      };
+      final now = DateTime.now();
+      final payment = cart.paymentMode.value == 'CASH'
+          ? PosPaymentMode.cash
+          : PosPaymentMode.online;
 
-      final uri = _getPrintApiUri();
-      _log('API: URL=$uri payload=${jsonEncode(payload)}');
+      final order = PosOrder(
+        id: 'ORD-${now.millisecondsSinceEpoch}',
+        createdAt: now,
+        lines: cart.cartLines
+            .map((l) => PosOrderLine(
+                  itemId: l.item.id,
+                  itemName: l.item.name,
+                  qty: l.qty.value,
+                  unitPrice: l.item.price,
+                ))
+            .toList(),
+        subtotal: cart.subtotal,
+        gstAmount: cart.gstAmount,
+        total: cart.total,
+        paymentMode: payment,
+        customerName: customerController.text.trim(),
+        tableNo: tableController.text.trim(),
+      );
 
-      final http.Client client = createHttpClient();
-      try {
-        final response = await client.post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(payload),
-        );
-
-        _log('API: status=${response.statusCode} body=${response.body}');
-        if (!mounted) return;
-
-        final ok = response.statusCode >= 200 && response.statusCode < 300;
-        if (ok) {
-          _showSnackBar(context, message: 'Printed successfully');
-
-          final now = DateTime.now();
-          final payment = cart.paymentMode.value == 'CASH'
-              ? PosPaymentMode.cash
-              : PosPaymentMode.online;
-
-          final order = PosOrder(
-            id: 'ORD-${now.millisecondsSinceEpoch}',
-            createdAt: now,
-            lines: cart.cartLines
-                .map((l) => PosOrderLine(
-                      itemId: l.item.id,
-                      itemName: l.item.name,
-                      qty: l.qty.value,
-                      unitPrice: l.item.price,
-                    ))
-                .toList(),
-            subtotal: cart.subtotal,
-            gstAmount: cart.gstAmount,
-            total: cart.total,
-            paymentMode: payment,
-            customerName: customerController.text.trim(),
-          );
-
-          await _ordersController.addOrder(order);
-          cart.clear();
-          tableController.clear();
-          customerController.clear();
-        } else {
-          _showSnackBar(
-            context,
-            message: 'Print failed (HTTP ${response.statusCode})',
-            isError: true,
-          );
-        }
-      } finally {
-        client.close();
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        await _printAndroid(order);
+      } else {
+        await _printWeb(order);
       }
     } catch (e, st) {
       _log('ERROR: $e\n$st');
@@ -166,6 +134,115 @@ class _CartWidgetState extends State<CartWidget> {
     } finally {
       if (mounted) setState(() => _isPrinting = false);
     }
+  }
+
+  // ── Android: Bluetooth thermal printer ─────────────────────────────────────
+  Future<void> _printAndroid(PosOrder order) async {
+    final service = BluetoothPrintService();
+
+    final granted = await service.requestPermissions();
+    if (!granted) {
+      if (!mounted) return;
+      _showSnackBar(context, message: 'Bluetooth permissions required.', isError: true);
+      return;
+    }
+
+    String? mac = await service.getSavedMac();
+    if (mac == null) {
+      if (!mounted) return;
+      final devices = await service.getPairedDevices();
+      if (devices.isEmpty) {
+        if (!mounted) return;
+        _showSnackBar(
+          context,
+          message: 'No paired printer found. Go to Drawer → Printer Setup to pair one.',
+          isError: true,
+        );
+        return;
+      }
+      if (!mounted) return;
+      mac = await showDialog<String>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: const Text('Select Printer'),
+          children: devices
+              .map((d) => SimpleDialogOption(
+                    onPressed: () => Navigator.pop(ctx, d.macAdress),
+                    child: Text('${d.name}  ${d.macAdress}',
+                        style: const TextStyle(fontSize: 13)),
+                  ))
+              .toList(),
+        ),
+      );
+      if (mac == null) return;
+      await service.savePrinterMac(mac);
+    }
+
+    final connected = await service.connect(mac);
+    if (!connected) {
+      if (!mounted) return;
+      _showSnackBar(
+        context,
+        message: 'Could not connect to printer. Make sure it is on and paired.',
+        isError: true,
+      );
+      return;
+    }
+
+    final success = await service.printBill(order, 'My Shop');
+    if (!mounted) return;
+
+    if (success) {
+      _showSnackBar(context, message: 'Printed successfully');
+      await _saveOrder(order);
+    } else {
+      _showSnackBar(context, message: 'Print failed. Try again.', isError: true);
+    }
+  }
+
+  // ── Web: HTTP endpoint ──────────────────────────────────────────────────────
+  Future<void> _printWeb(PosOrder order) async {
+    final payload = <String, dynamic>{
+      'text': _generateReceiptText(),
+      'paymentMode': widget.cartController.paymentMode.value,
+    };
+
+    final uri = _getPrintApiUri();
+    _log('API: URL=$uri payload=${jsonEncode(payload)}');
+
+    final http.Client client = createHttpClient();
+    try {
+      final response = await client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      _log('API: status=${response.statusCode} body=${response.body}');
+      if (!mounted) return;
+
+      final ok = response.statusCode >= 200 && response.statusCode < 300;
+      if (ok) {
+        _showSnackBar(context, message: 'Printed successfully');
+        await _saveOrder(order);
+      } else {
+        _showSnackBar(
+          context,
+          message: 'Print failed (HTTP ${response.statusCode})',
+          isError: true,
+        );
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  // ── Save order + clear cart (shared) ────────────────────────────────────────
+  Future<void> _saveOrder(PosOrder order) async {
+    await _ordersController.addOrder(order);
+    widget.cartController.clear();
+    tableController.clear();
+    customerController.clear();
   }
 
   @override

@@ -29,6 +29,10 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
   path_provider: ^2.1.5
+  print_bluetooth_thermal: ^1.0.10
+  esc_pos_utils_plus: ^2.0.4
+  permission_handler: ^11.3.1
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

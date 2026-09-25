@@ -10,6 +10,7 @@ enum AppScreenType {
   expense,
   settings,
   profile,
+  printer,
 }
 
 class AppScreenController extends GetxController {
