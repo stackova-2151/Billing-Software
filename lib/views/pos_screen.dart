@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -44,7 +43,9 @@ class PosScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: pageBg,
       // ── Mobile drawer (all pages) ──────────────────────────────────────────
-      drawer: isMobile ? _MobileDrawer(screenController: screenController) : null,
+      drawer: isMobile
+          ? _MobileDrawer(screenController: screenController)
+          : null,
       body: SafeArea(
         child: Row(
           children: [
@@ -78,47 +79,50 @@ class PosScreen extends StatelessWidget {
 
             // ── Main content ────────────────────────────────────────────────
             Expanded(
-              child: Obx(() {
-                final screen = screenController.currentScreen.value;
+              child: Column(
+                children: [
+                  // Common header for all pages
+                  _PosHeader(isMobile: isMobile),
 
-                if (screen == AppScreenType.menuItems) {
-                  return MenuItemsManagementWidget(
-                    menuController: menuController,
-                  );
-                }
-                if (screen == AppScreenType.profile) {
-                  return const ProfileScreen();
-                }
-                if (screen == AppScreenType.dashboard) {
-                  return const PosDashboardView();
-                }
-                if (screen == AppScreenType.billsHistory) {
-                  return const BillHistoryScreen();
-                }
-                if (screen == AppScreenType.reports) {
-                  return const ReportsScreen();
-                }
-                if (screen == AppScreenType.stock) {
-                  return const StockManagementScreen();
-                }
-                if (screen == AppScreenType.expense) {
-                  return const ExpenseManagementScreen();
-                }
-                if (screen == AppScreenType.printer) {
-                  return const PrinterScreen();
-                }
-                if (screen == AppScreenType.settings) {
-                  return const _PlaceholderScreen(title: 'Settings');
-                }
+                  // Current page content
+                  Expanded(
+                    child: Obx(() {
+                      final screen = screenController.currentScreen.value;
 
-                // ── POS screen ──────────────────────────────────────────────
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Column(
-                      children: [
-                        _PosHeader(isMobile: isMobile),
-                        Expanded(
-                          child: CustomScrollView(
+                      if (screen == AppScreenType.menuItems) {
+                        return MenuItemsManagementWidget(
+                          menuController: menuController,
+                        );
+                      }
+                      if (screen == AppScreenType.profile) {
+                        return const ProfileScreen();
+                      }
+                      if (screen == AppScreenType.dashboard) {
+                        return const PosDashboardView();
+                      }
+                      if (screen == AppScreenType.billsHistory) {
+                        return const BillHistoryScreen();
+                      }
+                      if (screen == AppScreenType.reports) {
+                        return const ReportsScreen();
+                      }
+                      if (screen == AppScreenType.stock) {
+                        return const StockManagementScreen();
+                      }
+                      if (screen == AppScreenType.expense) {
+                        return const ExpenseManagementScreen();
+                      }
+                      if (screen == AppScreenType.printer) {
+                        return const PrinterScreen();
+                      }
+                      if (screen == AppScreenType.settings) {
+                        return const _PlaceholderScreen(title: 'Settings');
+                      }
+
+                      // ── POS screen content (without header - header is common above) ─────────────
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          return CustomScrollView(
                             physics: const BouncingScrollPhysics(),
                             slivers: [
                               // Search bar
@@ -171,7 +175,9 @@ class PosScreen extends StatelessWidget {
                                       border: Border.all(color: borderColor),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: accent.withOpacity(0.05),
+                                          color: PosScreen.accent.withValues(
+                                            alpha: 0.05,
+                                          ),
                                           blurRadius: 24,
                                           offset: const Offset(0, 8),
                                         ),
@@ -213,13 +219,13 @@ class PosScreen extends StatelessWidget {
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }),
+                          );
+                        },
+                      );
+                    }),
+                  ),
+                ],
+              ),
             ),
 
             // ── Cart panel (desktop POS only) ───────────────────────────────
@@ -267,10 +273,10 @@ class PosScreen extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
-        crossAxisSpacing: isMobile ? 16 : 22,
-        mainAxisSpacing: isMobile ? 24 : 28,
-        childAspectRatio: 0.92,
+        crossAxisCount: ResponsiveHelper.getPosGridCrossAxisCount(context),
+        crossAxisSpacing: isMobile ? 12 : 22,
+        mainAxisSpacing: isMobile ? 16 : 28,
+        childAspectRatio: isMobile ? 0.75 : 0.92,
       ),
       itemCount: 8,
       itemBuilder: (_, __) => const ItemCardShimmer(),
@@ -287,10 +293,10 @@ class PosScreen extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: ResponsiveHelper.getGridCrossAxisCount(context),
-        crossAxisSpacing: isMobile ? 16 : 22,
-        mainAxisSpacing: isMobile ? 24 : 28,
-        childAspectRatio: 0.92,
+        crossAxisCount: ResponsiveHelper.getPosGridCrossAxisCount(context),
+        crossAxisSpacing: isMobile ? 12 : 22,
+        mainAxisSpacing: isMobile ? 16 : 28,
+        childAspectRatio: isMobile ? 0.75 : 0.92,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -406,7 +412,7 @@ class _PosHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: PosScreen.accent.withOpacity(0.06),
+            color: PosScreen.accent.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -427,8 +433,11 @@ class _PosHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: PosScreen.borderColor),
                   ),
-                  child: const Icon(Icons.menu_rounded,
-                      size: 20, color: PosScreen.accent),
+                  child: const Icon(
+                    Icons.menu_rounded,
+                    size: 20,
+                    color: PosScreen.accent,
+                  ),
                 ),
               ),
             ),
@@ -472,7 +481,7 @@ class _PosHeader extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: PosScreen.accent.withOpacity(0.3),
+                    color: PosScreen.accent.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -568,7 +577,7 @@ class _PremiumSearchBarState extends State<_PremiumSearchBar> {
         boxShadow: _focused
             ? [
                 BoxShadow(
-                  color: PosScreen.accent.withOpacity(0.12),
+                  color: PosScreen.accent.withValues(alpha: 0.12),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -587,7 +596,7 @@ class _PremiumSearchBarState extends State<_PremiumSearchBar> {
           decoration: InputDecoration(
             hintText: 'Search dishes, starters...',
             hintStyle: TextStyle(
-              color: PosScreen.textMid.withOpacity(0.6),
+              color: PosScreen.textMid.withValues(alpha: 0.6),
               fontSize: isMobile ? 13 : 14,
               fontWeight: FontWeight.w400,
             ),
@@ -635,7 +644,7 @@ class _PremiumCartFab extends StatelessWidget {
           borderRadius: BorderRadius.circular(26),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withOpacity(0.40),
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.40),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -663,7 +672,7 @@ class _PremiumCartFab extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -688,8 +697,6 @@ class _MobileNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const _MobileNavBar({required this.currentIndex, required this.onTap});
-
-  static const _accent = Color(0xFF6C63FF);
 
   @override
   Widget build(BuildContext context) {
@@ -772,14 +779,12 @@ class _NavBarItem extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: active ? _accent.withOpacity(0.1) : Colors.transparent,
+                color: active
+                    ? _accent.withValues(alpha: 0.1)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: active ? _accent : _inactive,
-              ),
+              child: Icon(icon, size: 22, color: active ? _accent : _inactive),
             ),
             const SizedBox(height: 2),
             Text(
@@ -834,7 +839,11 @@ class _MobileDrawer extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.restaurant, color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.restaurant,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Column(
@@ -850,7 +859,10 @@ class _MobileDrawer extends StatelessWidget {
                       ),
                       Text(
                         'Restaurant Management',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF6B6880)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF6B6880),
+                        ),
                       ),
                     ],
                   ),
@@ -863,7 +875,10 @@ class _MobileDrawer extends StatelessWidget {
               child: Obx(() {
                 final current = screenController.currentScreen.value;
                 return ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   children: [
                     _DrawerItem(
                       icon: Icons.dashboard_outlined,
@@ -971,8 +986,8 @@ class _DrawerItem extends StatelessWidget {
     final color = isDestructive
         ? const Color(0xFFDC2626)
         : active
-            ? _accent
-            : const Color(0xFF4B5563);
+        ? _accent
+        : const Color(0xFF4B5563);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -984,7 +999,9 @@ class _DrawerItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: active ? _accent.withOpacity(0.08) : Colors.transparent,
+              color: active
+                  ? _accent.withValues(alpha: 0.08)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(

@@ -117,7 +117,7 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: _gradient.last.withOpacity(0.55),
+                          color: _gradient.last.withValues(alpha: 0.55),
                           blurRadius: 18,
                           offset: const Offset(0, 6),
                         ),
@@ -176,12 +176,12 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
                           decoration: BoxDecoration(
                             color: qty > 0
                                 ? _primaryAccent
-                                : Colors.white.withOpacity(0.7),
+                                : Colors.white.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: qty > 0
                                   ? _primaryAccent
-                                  : Colors.white.withOpacity(0.0),
+                                  : Colors.white.withValues(alpha: 0.0),
                             ),
                           ),
                           child: Center(
@@ -271,7 +271,7 @@ class _FloatingImage extends StatelessWidget {
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: gradientColor.withOpacity(0.14),
+            color: gradientColor.withValues(alpha: 0.14),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -319,7 +319,7 @@ class _FloatingImage extends StatelessWidget {
       errorBuilder: (_, __, ___) => Icon(
         Icons.broken_image_outlined,
         size: imageSize * 0.42,
-        color: const Color(0xFF6C63FF).withOpacity(0.5),
+        color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
       ),
     );
   }

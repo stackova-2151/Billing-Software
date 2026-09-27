@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../controllers/orders_controller.dart';
 import '../models/pos_order.dart';
+import '../utils/responsive_helper.dart';
 
 enum _Period { all, today, week, month, custom }
 
@@ -24,7 +25,6 @@ class _DS {
   static const textPrimary = Color(0xFF0D1B2A);
   static const textSecondary = Color(0xFF5A6A7A);
   static const textMuted = Color(0xFF9AAABB);
-  static const accent = Color(0xFF4ADE80);
   static const accentDark = Color(0xFF16A34A);
 
   // Gradient presets
@@ -50,11 +50,10 @@ class _DS {
   );
 
   // Radius
-  static const r8  = BorderRadius.all(Radius.circular(8));
+  static const r8 = BorderRadius.all(Radius.circular(8));
   static const r10 = BorderRadius.all(Radius.circular(10));
   static const r12 = BorderRadius.all(Radius.circular(12));
   static const r16 = BorderRadius.all(Radius.circular(16));
-  static const r20 = BorderRadius.all(Radius.circular(20));
 
   // Shadows
   static List<BoxShadow> shadow1 = [
@@ -112,7 +111,9 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
       case _Period.week:
         final start = now.subtract(Duration(days: now.weekday - 1));
         final startDay = DateTime(start.year, start.month, start.day);
-        filtered = filtered.where((o) => o.createdAt.isAfter(startDay)).toList();
+        filtered = filtered
+            .where((o) => o.createdAt.isAfter(startDay))
+            .toList();
         break;
       case _Period.month:
         final start = DateTime(now.year, now.month, 1);
@@ -126,14 +127,21 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
             final start = DateTime(from.year, from.month, from.day);
             final end = DateTime(to.year, to.month, to.day, 23, 59, 59);
             filtered = filtered
-                .where((o) => !o.createdAt.isBefore(start) && !o.createdAt.isAfter(end))
+                .where(
+                  (o) =>
+                      !o.createdAt.isBefore(start) && !o.createdAt.isAfter(end),
+                )
                 .toList();
           } else if (from != null) {
             final start = DateTime(from.year, from.month, from.day);
-            filtered = filtered.where((o) => !o.createdAt.isBefore(start)).toList();
+            filtered = filtered
+                .where((o) => !o.createdAt.isBefore(start))
+                .toList();
           } else if (to != null) {
             final end = DateTime(to.year, to.month, to.day, 23, 59, 59);
-            filtered = filtered.where((o) => !o.createdAt.isAfter(end)).toList();
+            filtered = filtered
+                .where((o) => !o.createdAt.isAfter(end))
+                .toList();
           }
         }
         break;
@@ -166,7 +174,9 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
       grouped.putIfAbsent(key, () => []);
       grouped[key]!.add(order);
     }
-    final result = grouped.entries.map((e) => _DateGroup(e.key, e.value)).toList();
+    final result = grouped.entries
+        .map((e) => _DateGroup(e.key, e.value))
+        .toList();
     result.sort((a, b) {
       if (a.label == 'Today') return -1;
       if (b.label == 'Today') return 1;
@@ -186,7 +196,9 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
       body: Column(
         children: [
           _DashboardHeader(
-            onExport: () {/* TODO: export */},
+            onExport: () {
+              /* TODO: export */
+            },
           ),
           _SearchAndFilters(
             searchController: _searchController,
@@ -203,7 +215,8 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
               final filtered = _filterOrders(controller.orders);
               if (filtered.isEmpty) {
                 return _EmptyState(
-                  hasFilters: _searchQuery.value.isNotEmpty ||
+                  hasFilters:
+                      _searchQuery.value.isNotEmpty ||
                       _period.value != _Period.all ||
                       _fromDate.value != null ||
                       _toDate.value != null,
@@ -213,26 +226,23 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
               return CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverToBoxAdapter(
-                    child: _MetricsRow(orders: filtered),
-                  ),
+                  SliverToBoxAdapter(child: _MetricsRow(orders: filtered)),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final group = dateGroups[index];
-                          return _DateGroupSection(
-                            group: group,
-                            expandedOrderId: _expandedOrderId,
-                            onOrderTap: (orderId) {
-                              _expandedOrderId.value =
-                                  _expandedOrderId.value == orderId ? null : orderId;
-                            },
-                          );
-                        },
-                        childCount: dateGroups.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final group = dateGroups[index];
+                        return _DateGroupSection(
+                          group: group,
+                          expandedOrderId: _expandedOrderId,
+                          onOrderTap: (orderId) {
+                            _expandedOrderId.value =
+                                _expandedOrderId.value == orderId
+                                ? null
+                                : orderId;
+                          },
+                        );
+                      }, childCount: dateGroups.length),
                     ),
                   ),
                 ],
@@ -267,7 +277,7 @@ class _DashboardHeader extends StatelessWidget {
         bottom: 14,
       ),
       child: Row(
-        children: [          
+        children: [
           // Title
           Expanded(
             child: Column(
@@ -292,7 +302,7 @@ class _DashboardHeader extends StatelessWidget {
                 ),
               ],
             ),
-          ),         
+          ),
           // const SizedBox(width: 8),
           // _PrimaryBtn(
           //   icon: Icons.file_download_outlined,
@@ -300,76 +310,6 @@ class _DashboardHeader extends StatelessWidget {
           //   onTap: onExport,
           // ),
         ],
-      ),
-    );
-  }
-}
-
-class _IconBtn extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  const _IconBtn({required this.icon, required this.onTap, this.tooltip});
-
-  @override
-  Widget build(BuildContext context) {
-    final btn = GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
-          borderRadius: _DS.r10,
-        ),
-        child: Icon(icon, size: 18, color: _DS.textSecondary),
-      ),
-    );
-    if (tooltip != null) return Tooltip(message: tooltip!, child: btn);
-    return btn;
-  }
-}
-
-class _PrimaryBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _PrimaryBtn({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          gradient: _DS.gradGreen,
-          borderRadius: const BorderRadius.all(Radius.circular(10)),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF22C55E).withValues(alpha: 0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -401,137 +341,154 @@ class _SearchAndFilters extends StatelessWidget {
       child: Column(
         children: [
           // Search bar
-          Obx(() => Container(
-                decoration: BoxDecoration(
-                  color: _DS.bg,
-                  borderRadius: _DS.r12,
-                  border: Border.all(
-                    color: searchQuery.value.isNotEmpty
-                        ? const Color(0xFF22C55E).withValues(alpha: 0.5)
-                        : Colors.transparent,
-                  ),
+          Obx(
+            () => Container(
+              decoration: BoxDecoration(
+                color: _DS.bg,
+                borderRadius: _DS.r12,
+                border: Border.all(
+                  color: searchQuery.value.isNotEmpty
+                      ? const Color(0xFF22C55E).withValues(alpha: 0.5)
+                      : Colors.transparent,
                 ),
-                child: TextField(
-                  controller: searchController,
-                  onChanged: (v) => searchQuery.value = v,
-                  style: const TextStyle(
+              ),
+              child: TextField(
+                controller: searchController,
+                onChanged: (v) => searchQuery.value = v,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _DS.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search by order ID…',
+                  hintStyle: const TextStyle(
+                    color: _DS.textMuted,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: _DS.textPrimary,
                   ),
-                  decoration: InputDecoration(
-                    hintText: 'Search by order ID…',
-                    hintStyle: const TextStyle(color: _DS.textMuted, fontSize: 14),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: searchQuery.value.isNotEmpty
-                          ? const Color(0xFF22C55E)
-                          : _DS.textMuted,
-                      size: 20,
-                    ),
-                    suffixIcon: searchQuery.value.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.cancel_rounded,
-                                size: 18, color: _DS.textMuted),
-                            onPressed: () {
-                              searchController.clear();
-                              searchQuery.value = '';
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: searchQuery.value.isNotEmpty
+                        ? const Color(0xFF22C55E)
+                        : _DS.textMuted,
+                    size: 20,
                   ),
+                  suffixIcon: searchQuery.value.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.cancel_rounded,
+                            size: 18,
+                            color: _DS.textMuted,
+                          ),
+                          onPressed: () {
+                            searchController.clear();
+                            searchQuery.value = '';
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-              )),
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           // Period chips
-          Obx(() => SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    (_Period.all, 'All Time', Icons.all_inclusive_rounded),
-                    (_Period.today, 'Today', Icons.today_rounded),
-                    (_Period.week, 'This Week', Icons.date_range_rounded),
-                    (_Period.month, 'This Month', Icons.calendar_month_rounded),
-                  ].map((e) {
-                    final isActive = period.value == e.$1;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _FilterChip(
-                        label: e.$2,
-                        icon: e.$3,
-                        isActive: isActive,
-                        onTap: () {
-                          period.value = e.$1;
-                          fromDate.value = null;
-                          toDate.value = null;
-                        },
+          Obx(
+            () => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children:
+                    [
+                      (_Period.all, 'All Time', Icons.all_inclusive_rounded),
+                      (_Period.today, 'Today', Icons.today_rounded),
+                      (_Period.week, 'This Week', Icons.date_range_rounded),
+                      (
+                        _Period.month,
+                        'This Month',
+                        Icons.calendar_month_rounded,
                       ),
-                    );
-                  }).toList(),
-                ),
-              )),
+                    ].map((e) {
+                      final isActive = period.value == e.$1;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _FilterChip(
+                          label: e.$2,
+                          icon: e.$3,
+                          isActive: isActive,
+                          onTap: () {
+                            period.value = e.$1;
+                            fromDate.value = null;
+                            toDate.value = null;
+                          },
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           // Date range
-          Obx(() => Row(
-                children: [
-                  Expanded(
-                    child: _DateRangeField(
-                      label: 'From Date',
-                      date: fromDate.value,
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: fromDate.value ?? DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
-                          builder: (context, child) =>
-                              _datePickerTheme(context, child),
-                        );
-                        if (picked != null) {
-                          fromDate.value = picked;
-                          period.value = _Period.custom;
-                        }
-                      },
-                      onClear: () {
-                        fromDate.value = null;
-                        if (toDate.value == null) period.value = _Period.all;
-                      },
-                    ),
+          Obx(
+            () => Row(
+              children: [
+                Expanded(
+                  child: _DateRangeField(
+                    label: 'From Date',
+                    date: fromDate.value,
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: fromDate.value ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) =>
+                            _datePickerTheme(context, child),
+                      );
+                      if (picked != null) {
+                        fromDate.value = picked;
+                        period.value = _Period.custom;
+                      }
+                    },
+                    onClear: () {
+                      fromDate.value = null;
+                      if (toDate.value == null) period.value = _Period.all;
+                    },
                   ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    height: 1,
-                    width: 10,
-                    color: _DS.textMuted,
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  height: 1,
+                  width: 10,
+                  color: _DS.textMuted,
+                ),
+                Expanded(
+                  child: _DateRangeField(
+                    label: 'To Date',
+                    date: toDate.value,
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: toDate.value ?? DateTime.now(),
+                        firstDate: fromDate.value ?? DateTime(2020),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) =>
+                            _datePickerTheme(context, child),
+                      );
+                      if (picked != null) {
+                        toDate.value = picked;
+                        period.value = _Period.custom;
+                      }
+                    },
+                    onClear: () {
+                      toDate.value = null;
+                      if (fromDate.value == null) period.value = _Period.all;
+                    },
                   ),
-                  Expanded(
-                    child: _DateRangeField(
-                      label: 'To Date',
-                      date: toDate.value,
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: toDate.value ?? DateTime.now(),
-                          firstDate: fromDate.value ?? DateTime(2020),
-                          lastDate: DateTime.now(),
-                          builder: (context, child) =>
-                              _datePickerTheme(context, child),
-                        );
-                        if (picked != null) {
-                          toDate.value = picked;
-                          period.value = _Period.custom;
-                        }
-                      },
-                      onClear: () {
-                        toDate.value = null;
-                        if (fromDate.value == null) period.value = _Period.all;
-                      },
-                    ),
-                  ),
-                ],
-              )),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -697,7 +654,11 @@ class _DateRangeField extends StatelessWidget {
                     color: _DS.textMuted.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, size: 12, color: _DS.textSecondary),
+                  child: const Icon(
+                    Icons.close,
+                    size: 12,
+                    color: _DS.textSecondary,
+                  ),
                 ),
               ),
           ],
@@ -718,62 +679,62 @@ class _MetricsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final total = orders.fold<double>(0, (s, o) => s + o.total);
-    final cashCount = orders.where((o) => o.paymentMode == PosPaymentMode.cash).length;
+    final cashCount = orders
+        .where((o) => o.paymentMode == PosPaymentMode.cash)
+        .length;
     final onlineCount = orders.length - cashCount;
     final cashTotal = orders
         .where((o) => o.paymentMode == PosPaymentMode.cash)
         .fold<double>(0, (s, o) => s + o.total);
 
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final crossAxisCount = isMobile ? 2 : 4;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Row(
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: isMobile ? 1.7 : 2.8,
         children: [
-          Expanded(
-            child: _MetricCard(
-              label: 'Total Revenue',
-              value: '₹${_formatAmount(total)}',
-              subLabel: '${orders.length} orders',
-              gradient: _DS.gradGreen,
-              icon: Icons.trending_up_rounded,
-              iconBg: Colors.white.withValues(alpha: 0.2),
-              compact: true,
-            ),
+          _MetricCard(
+            label: 'Total Revenue',
+            value: '₹${_formatAmount(total)}',
+            subLabel: '${orders.length} orders',
+            gradient: _DS.gradGreen,
+            icon: Icons.trending_up_rounded,
+            iconBg: Colors.white.withValues(alpha: 0.2),
+            compact: true,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MetricCard(
-              label: 'Total Orders',
-              value: '${orders.length}',
-              subLabel: 'Processed',
-              gradient: _DS.gradViolet,
-              icon: Icons.receipt_long_rounded,
-              iconBg: Colors.white.withValues(alpha: 0.2),
-              compact: true,
-            ),
+          _MetricCard(
+            label: 'Total Orders',
+            value: '${orders.length}',
+            subLabel: 'Processed',
+            gradient: _DS.gradViolet,
+            icon: Icons.receipt_long_rounded,
+            iconBg: Colors.white.withValues(alpha: 0.2),
+            compact: true,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MetricCard(
-              label: 'Cash Sales',
-              value: '$cashCount',
-              subLabel: '₹${_formatAmount(cashTotal)}',
-              gradient: _DS.gradAmber,
-              icon: Icons.payments_rounded,
-              iconBg: Colors.white.withValues(alpha: 0.2),
-              compact: true,
-            ),
+          _MetricCard(
+            label: 'Cash Sales',
+            value: '$cashCount',
+            subLabel: '₹${_formatAmount(cashTotal)}',
+            gradient: _DS.gradAmber,
+            icon: Icons.payments_rounded,
+            iconBg: Colors.white.withValues(alpha: 0.2),
+            compact: true,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _MetricCard(
-              label: 'Online Sales',
-              value: '$onlineCount',
-              subLabel: '₹${_formatAmount(total - cashTotal)}',
-              gradient: _DS.gradBlue,
-              icon: Icons.phone_iphone_rounded,
-              iconBg: Colors.white.withValues(alpha: 0.2),
-              compact: true,
-            ),
+          _MetricCard(
+            label: 'Online Sales',
+            value: '$onlineCount',
+            subLabel: '₹${_formatAmount(total - cashTotal)}',
+            gradient: _DS.gradBlue,
+            icon: Icons.phone_iphone_rounded,
+            iconBg: Colors.white.withValues(alpha: 0.2),
+            compact: true,
           ),
         ],
       ),
@@ -812,7 +773,7 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(compact ? 14 : 18),
+      padding: EdgeInsets.all(compact ? 12 : 18),
       decoration: BoxDecoration(
         gradient: gradient,
         borderRadius: _DS.r16,
@@ -864,10 +825,7 @@ class _MetricCard extends StatelessWidget {
           Container(
             width: compact ? 36 : 44,
             height: compact ? 36 : 44,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: _DS.r12,
-            ),
+            decoration: BoxDecoration(color: iconBg, borderRadius: _DS.r12),
             child: Icon(icon, color: Colors.white, size: compact ? 18 : 22),
           ),
         ],
@@ -902,7 +860,10 @@ class _DateGroupSection extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _DS.textPrimary,
                   borderRadius: _DS.r8,
@@ -945,11 +906,15 @@ class _DateGroupSection extends StatelessWidget {
             ],
           ),
         ),
-        ...group.orders.map((order) => Obx(() => _OrderCard(
+        ...group.orders.map(
+          (order) => Obx(
+            () => _OrderCard(
               order: order,
               isExpanded: expandedOrderId.value == order.id,
               onTap: () => onOrderTap(order.id),
-            ))),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -998,9 +963,7 @@ class _OrderCard extends StatelessWidget {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: isExpanded ? 3 : 0,
-                  decoration: const BoxDecoration(
-                    gradient: _DS.gradGreen,
-                  ),
+                  decoration: const BoxDecoration(gradient: _DS.gradGreen),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -1068,15 +1031,16 @@ class _OrderCardHeader extends StatelessWidget {
                       color: _DS.textPrimary,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _PaymentBadge(mode: order.paymentMode),
                 ],
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time_rounded,
-                      size: 12, color: _DS.textMuted),
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 12,
+                    color: _DS.textMuted,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     DateFormat('hh:mm a').format(order.createdAt),
@@ -1086,10 +1050,15 @@ class _OrderCardHeader extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  _PaymentBadge(mode: order.paymentMode),
                   if (order.customerName.isNotEmpty) ...[
                     const SizedBox(width: 10),
-                    const Icon(Icons.person_outline_rounded,
-                        size: 12, color: _DS.textMuted),
+                    const Icon(
+                      Icons.person_outline_rounded,
+                      size: 12,
+                      color: _DS.textMuted,
+                    ),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
@@ -1165,93 +1134,97 @@ class _OrderCardDetails extends StatelessWidget {
         // Items header
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: _DS.bg,
-            borderRadius: _DS.r8,
-          ),
+          decoration: BoxDecoration(color: _DS.bg, borderRadius: _DS.r8),
           child: Row(
             children: [
-              Expanded(
-                child: Text('Item',
-                    style: _itemHeaderStyle),
-              ),
+              Expanded(child: Text('Item', style: _itemHeaderStyle)),
               Text('Qty', style: _itemHeaderStyle),
               const SizedBox(width: 20),
               SizedBox(
                 width: 80,
-                child: Text('Amount',
-                    textAlign: TextAlign.right,
-                    style: _itemHeaderStyle),
+                child: Text(
+                  'Amount',
+                  textAlign: TextAlign.right,
+                  style: _itemHeaderStyle,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 10),
         // Line items
-        ...order.lines.map((line) => Padding(
-              padding: const EdgeInsets.only(bottom: 10, left: 4, right: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF22C55E),
-                            shape: BoxShape.circle,
+        ...order.lines.map(
+          (line) => Padding(
+            padding: const EdgeInsets.only(bottom: 10, left: 4, right: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          line.itemName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _DS.textPrimary,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            line.itemName,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: _DS.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _DS.bg,
-                      borderRadius: _DS.r8,
-                    ),
-                    child: Text(
-                      '×${line.qty}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _DS.textSecondary,
                       ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _DS.bg,
+                    borderRadius: _DS.r8,
+                  ),
+                  child: Text(
+                    '×${line.qty}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _DS.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      '₹${line.lineTotal.toStringAsFixed(0)}',
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: _DS.textPrimary,
-                      ),
+                ),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 80,
+                  child: Text(
+                    '₹${line.lineTotal.toStringAsFixed(0)}',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: _DS.textPrimary,
                     ),
                   ),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          ),
+        ),
         Container(height: 1, color: _DS.border),
         const SizedBox(height: 12),
         // Subtotal & GST
-        _TotalsRow(label: 'Subtotal', value: '₹${order.subtotal.toStringAsFixed(0)}'),
+        _TotalsRow(
+          label: 'Subtotal',
+          value: '₹${order.subtotal.toStringAsFixed(0)}',
+        ),
         const SizedBox(height: 8),
         _TotalsRow(
           label: 'GST (5%)',
@@ -1275,7 +1248,11 @@ class _OrderCardDetails extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'Total',
@@ -1316,11 +1293,7 @@ class _TotalsRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  const _TotalsRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _TotalsRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -1348,66 +1321,6 @@ class _TotalsRow extends StatelessWidget {
   }
 }
 
-class _ActionBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool outlined;
-  final bool filled;
-
-  const _ActionBtn({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.outlined = false,
-    this.filled = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          gradient: filled ? _DS.gradGreen : null,
-          color: outlined ? _DS.bg : (filled ? null : _DS.bg),
-          border: outlined ? Border.all(color: _DS.border, width: 1.5) : null,
-          borderRadius: _DS.r10,
-          boxShadow: filled
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 14,
-              color: filled ? Colors.white : _DS.textSecondary,
-            ),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: filled ? Colors.white : _DS.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // PAYMENT BADGE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1422,9 +1335,7 @@ class _PaymentBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: isCash
-            ? const Color(0xFFFEF3C7)
-            : const Color(0xFFEFF6FF),
+        color: isCash ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
         borderRadius: _DS.r8,
         border: Border.all(
           color: isCash
@@ -1479,7 +1390,9 @@ class _EmptyState extends StatelessWidget {
               border: Border.all(color: _DS.border, width: 2),
             ),
             child: Icon(
-              hasFilters ? Icons.search_off_rounded : Icons.receipt_long_outlined,
+              hasFilters
+                  ? Icons.search_off_rounded
+                  : Icons.receipt_long_outlined,
               size: 38,
               color: _DS.textMuted,
             ),

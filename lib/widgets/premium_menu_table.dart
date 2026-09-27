@@ -30,24 +30,28 @@ class _PremiumMenuTableState extends State<PremiumMenuTable> {
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 600;
           final isTablet = constraints.maxWidth < 1024;
-          
+
           return Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: isMobile ? 800 : constraints.maxWidth,
+                    width: isMobile
+                        ? constraints.maxWidth
+                        : constraints.maxWidth,
                     child: ListView(
                       children: [
                         _TableHeader(isMobile: isMobile, isTablet: isTablet),
                         const SizedBox(height: 12),
-                        ...paginatedItems.map((item) => _TableRowCard(
-                              item: item,
-                              menuController: widget.menuController,
-                              isMobile: isMobile,
-                              isTablet: isTablet,
-                            )),
+                        ...paginatedItems.map(
+                          (item) => _TableRowCard(
+                            item: item,
+                            menuController: widget.menuController,
+                            isMobile: isMobile,
+                            isTablet: isTablet,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -67,14 +71,24 @@ class _PremiumMenuTableState extends State<PremiumMenuTable> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Calculate how many page buttons can fit
-          final availableWidth = constraints.maxWidth - 120; // Reserve space for nav buttons
-          final maxVisiblePages = (availableWidth / 44).floor().clamp(1, totalPages);
-          
+          final availableWidth =
+              constraints.maxWidth - 120; // Reserve space for nav buttons
+          final maxVisiblePages = (availableWidth / 44).floor().clamp(
+            1,
+            totalPages,
+          );
+
           // Calculate page range to show
-          int startPage = (_currentPage - maxVisiblePages ~/ 2).clamp(0, totalPages - maxVisiblePages);
-          int endPage = (startPage + maxVisiblePages).clamp(maxVisiblePages, totalPages);
+          int startPage = (_currentPage - maxVisiblePages ~/ 2).clamp(
+            0,
+            totalPages - maxVisiblePages,
+          );
+          int endPage = (startPage + maxVisiblePages).clamp(
+            maxVisiblePages,
+            totalPages,
+          );
           startPage = endPage - maxVisiblePages;
-          
+
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -93,14 +107,22 @@ class _PremiumMenuTableState extends State<PremiumMenuTable> {
                 const SizedBox(width: 8),
                 if (startPage > 0) ...[
                   _buildPageButton(0),
-                  if (startPage > 1) const Text('...', style: TextStyle(color: Color(0xFF64748B))),
+                  if (startPage > 1)
+                    const Text(
+                      '...',
+                      style: TextStyle(color: Color(0xFF64748B)),
+                    ),
                 ],
                 ...List.generate(endPage - startPage, (index) {
                   final pageIndex = startPage + index;
                   return _buildPageButton(pageIndex);
                 }),
                 if (endPage < totalPages) ...[
-                  if (endPage < totalPages - 1) const Text('...', style: TextStyle(color: Color(0xFF64748B))),
+                  if (endPage < totalPages - 1)
+                    const Text(
+                      '...',
+                      style: TextStyle(color: Color(0xFF64748B)),
+                    ),
                   _buildPageButton(totalPages - 1),
                 ],
                 const SizedBox(width: 8),
@@ -121,7 +143,7 @@ class _PremiumMenuTableState extends State<PremiumMenuTable> {
       ),
     );
   }
-  
+
   Widget _buildPageButton(int pageIndex) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -156,34 +178,96 @@ class _PremiumMenuTableState extends State<PremiumMenuTable> {
 class _TableHeader extends StatelessWidget {
   final bool isMobile;
   final bool isTablet;
-  
+
   const _TableHeader({required this.isMobile, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 18,
+        vertical: isMobile ? 12 : 16,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F6FA),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(isMobile ? 10 : 14),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 64, child: Text('Image', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
-          const SizedBox(width: 20),
-          const Expanded(flex: 3, child: Text('Item Info', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          SizedBox(
+            width: isMobile ? 40 : 64,
+            child: Text(
+              'Image',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 12 : 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: isMobile ? 30 : 20),
+          Expanded(
+            child: Text(
+              'Item Info',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 12 : 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           if (!isMobile) ...[
             const SizedBox(width: 20),
-            const SizedBox(width: 120, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+            SizedBox(
+              width: 120,
+              child: Text(
+                'Category',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
-          const SizedBox(width: 20),
-          const SizedBox(width: 80, child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          SizedBox(width: isMobile ? 8 : 20),
+          SizedBox(
+            width: isMobile ? 70 : 80,
+            child: Text(
+              'Price',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 12 : 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           if (!isMobile) ...[
             const SizedBox(width: 24),
-            const SizedBox(width: 100, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+            SizedBox(
+              width: 100,
+              child: Text(
+                'Status',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
-          const Spacer(),
-          const SizedBox(width: 140, child: Align(alignment: Alignment.centerRight, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis))),
+          if (!isMobile) const Spacer(),
+          SizedBox(
+            width: isMobile ? 70 : 140,
+            child: Text(
+              'Actions',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 12 : 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -196,7 +280,12 @@ class _TableRowCard extends StatefulWidget {
   final bool isMobile;
   final bool isTablet;
 
-  const _TableRowCard({required this.item, required this.menuController, required this.isMobile, required this.isTablet});
+  const _TableRowCard({
+    required this.item,
+    required this.menuController,
+    required this.isMobile,
+    required this.isTablet,
+  });
 
   @override
   State<_TableRowCard> createState() => _TableRowCardState();
@@ -212,22 +301,25 @@ class _TableRowCardState extends State<_TableRowCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        margin: EdgeInsets.only(bottom: widget.isMobile ? 6 : 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: widget.isMobile ? 12 : 18,
+          vertical: widget.isMobile ? 10 : 16,
+        ),
         decoration: BoxDecoration(
           color: _isHovered ? const Color(0xFFFAFBFC) : const Color(0xFFF5F6FA),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(widget.isMobile ? 10 : 14),
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -235,14 +327,14 @@ class _TableRowCardState extends State<_TableRowCard> {
         ),
         child: Row(
           children: [
-            _ItemImage(url: widget.item.image),
-            const SizedBox(width: 20),
+            _ItemImage(url: widget.item.image, isMobile: widget.isMobile),
+            SizedBox(width: widget.isMobile ? 8 : 20),
             Expanded(
-              flex: 3,
               child: _ItemInfo(
                 name: widget.item.name,
                 isVeg: widget.item.isVeg,
                 category: widget.item.category,
+                isMobile: widget.isMobile,
               ),
             ),
             if (!widget.isMobile) ...[
@@ -252,10 +344,13 @@ class _TableRowCardState extends State<_TableRowCard> {
                 child: _CategoryPill(category: widget.item.category),
               ),
             ],
-            const SizedBox(width: 20),
+            SizedBox(width: widget.isMobile ? 8 : 20),
             SizedBox(
-              width: 80,
-              child: _PriceText(price: widget.item.price),
+              width: widget.isMobile ? 60 : 80,
+              child: _PriceText(
+                price: widget.item.price,
+                isMobile: widget.isMobile,
+              ),
             ),
             if (!widget.isMobile) ...[
               const SizedBox(width: 24),
@@ -264,12 +359,13 @@ class _TableRowCardState extends State<_TableRowCard> {
                 child: _StatusChip(isAvailable: widget.item.isAvailable),
               ),
             ],
-            const Spacer(),
+            if (!widget.isMobile) const Spacer(),
             SizedBox(
-              width: 140,
+              width: widget.isMobile ? 96 : 140,
               child: _ActionButtons(
                 item: widget.item,
                 menuController: widget.menuController,
+                isMobile: widget.isMobile,
               ),
             ),
           ],
@@ -281,20 +377,21 @@ class _TableRowCardState extends State<_TableRowCard> {
 
 class _ItemImage extends StatelessWidget {
   final String url;
+  final bool isMobile;
 
-  const _ItemImage({required this.url});
+  const _ItemImage({required this.url, required this.isMobile});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 48,
-      height: 48,
+      width: isMobile ? 40 : 48,
+      height: isMobile ? 40 : 48,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -304,14 +401,22 @@ class _ItemImage extends StatelessWidget {
         child: url.trim().isEmpty
             ? Container(
                 color: const Color(0xFFE5E7EB),
-                child: const Icon(Icons.restaurant, size: 24, color: Color(0xFF9CA3AF)),
+                child: Icon(
+                  Icons.restaurant,
+                  size: isMobile ? 20 : 24,
+                  color: const Color(0xFF9CA3AF),
+                ),
               )
             : Image.network(
                 url,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFFE5E7EB),
-                  child: const Icon(Icons.broken_image, size: 24, color: Color(0xFF9CA3AF)),
+                  child: Icon(
+                    Icons.broken_image,
+                    size: isMobile ? 20 : 24,
+                    color: const Color(0xFF9CA3AF),
+                  ),
                 ),
               ),
       ),
@@ -323,8 +428,14 @@ class _ItemInfo extends StatelessWidget {
   final String name;
   final bool isVeg;
   final String category;
+  final bool isMobile;
 
-  const _ItemInfo({required this.name, required this.isVeg, required this.category});
+  const _ItemInfo({
+    required this.name,
+    required this.isVeg,
+    required this.category,
+    required this.isMobile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -334,9 +445,9 @@ class _ItemInfo extends StatelessWidget {
       children: [
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 15,
+            fontSize: isMobile ? 14 : 15,
             color: Color(0xFF1F2937),
           ),
           maxLines: 1,
@@ -349,7 +460,9 @@ class _ItemInfo extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: isVeg ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                  color: isVeg
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFFEF4444),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(3),
@@ -358,7 +471,9 @@ class _ItemInfo extends StatelessWidget {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: isVeg ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                  color: isVeg
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFFEF4444),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -411,16 +526,17 @@ class _CategoryPill extends StatelessWidget {
 
 class _PriceText extends StatelessWidget {
   final double price;
+  final bool isMobile;
 
-  const _PriceText({required this.price});
+  const _PriceText({required this.price, required this.isMobile});
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      '₹${price.toStringAsFixed(0)}',
-      style: const TextStyle(
+      '₹${price.toStringAsFixed(2)}',
+      style: TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: 15,
+        fontSize: isMobile ? 13 : 14,
         color: Color(0xFF059669),
       ),
       maxLines: 1,
@@ -441,7 +557,9 @@ class _StatusChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isAvailable ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+          color: isAvailable
+              ? const Color(0xFFD1FAE5)
+              : const Color(0xFFFEE2E2),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -449,7 +567,9 @@ class _StatusChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: isAvailable ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+            color: isAvailable
+                ? const Color(0xFF065F46)
+                : const Color(0xFF991B1B),
           ),
           textAlign: TextAlign.center,
           maxLines: 1,
@@ -463,8 +583,13 @@ class _StatusChip extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   final MenuItem item;
   final app.MenuController menuController;
+  final bool isMobile;
 
-  const _ActionButtons({required this.item, required this.menuController});
+  const _ActionButtons({
+    required this.item,
+    required this.menuController,
+    required this.isMobile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -473,47 +598,59 @@ class _ActionButtons extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-        Tooltip(
-          message: 'View Details',
-          child: IconButton(
-            onPressed: () => _showViewDialog(context),
-            icon: const Icon(Icons.visibility_outlined, size: 20),
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFDCEEFB),
-              foregroundColor: const Color(0xFF2563EB),
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(36, 36),
+          Tooltip(
+            message: 'View Details',
+            child: IconButton(
+              onPressed: () => _showViewDialog(context),
+              icon: Icon(Icons.visibility_outlined, size: isMobile ? 16 : 20),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: isMobile
+                  ? const BoxConstraints(minWidth: 28, minHeight: 28)
+                  : const BoxConstraints(minWidth: 36, minHeight: 36),
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFFDCEEFB),
+                foregroundColor: const Color(0xFF2563EB),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Tooltip(
-          message: 'Edit Item',
-          child: IconButton(
-            onPressed: () => _editItem(context),
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFD1FAE5),
-              foregroundColor: const Color(0xFF059669),
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(36, 36),
+          SizedBox(width: isMobile ? 4 : 8),
+          Tooltip(
+            message: 'Edit Item',
+            child: IconButton(
+              onPressed: () => _editItem(context),
+              icon: Icon(Icons.edit_outlined, size: isMobile ? 16 : 20),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: isMobile
+                  ? const BoxConstraints(minWidth: 28, minHeight: 28)
+                  : const BoxConstraints(minWidth: 36, minHeight: 36),
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFFD1FAE5),
+                foregroundColor: const Color(0xFF059669),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Tooltip(
-          message: 'Delete Item',
-          child: IconButton(
-            onPressed: () => _deleteItem(context),
-            icon: const Icon(Icons.delete_outline, size: 20),
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFFEE2E2),
-              foregroundColor: const Color(0xFFDC2626),
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(36, 36),
+          SizedBox(width: isMobile ? 4 : 8),
+          Tooltip(
+            message: 'Delete Item',
+            child: IconButton(
+              onPressed: () => _deleteItem(context),
+              icon: Icon(Icons.delete_outline, size: isMobile ? 16 : 20),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: isMobile
+                  ? const BoxConstraints(minWidth: 28, minHeight: 28)
+                  : const BoxConstraints(minWidth: 36, minHeight: 36),
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFFFEE2E2),
+                foregroundColor: const Color(0xFFDC2626),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
-        ),
         ],
       ),
     );
@@ -568,9 +705,13 @@ class _ActionButtons extends StatelessWidget {
               _DetailRow('Category', item.category),
               _DetailRow('Price', '₹${item.price.toStringAsFixed(2)}'),
               _DetailRow('Type', item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'),
-              _DetailRow('Status', item.isAvailable ? 'In Stock' : 'Out of Stock'),
+              _DetailRow(
+                'Status',
+                item.isAvailable ? 'In Stock' : 'Out of Stock',
+              ),
               _DetailRow('GST', '${item.gstPercent}%'),
-              if (item.description.isNotEmpty) _DetailRow('Description', item.description),
+              if (item.description.isNotEmpty)
+                _DetailRow('Description', item.description),
             ],
           ),
         ),
@@ -610,10 +751,7 @@ class _ActionButtons extends StatelessWidget {
 
   void _editItem(BuildContext context) {
     Get.dialog(
-      AddMenuItemDialog(
-        menuController: menuController,
-        existing: item,
-      ),
+      AddMenuItemDialog(menuController: menuController, existing: item),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/profile_controller.dart';
+import '../utils/responsive_helper.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,8 +11,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProfileController>();
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWide = screenWidth > 800;
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isTablet = ResponsiveHelper.isTablet(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -19,36 +20,39 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             // Profile Header with Gradient
-            Container(
+            SizedBox(
               width: double.infinity,
               child: SafeArea(
                 bottom: false,
                 child: Column(
                   children: [
-                    const SizedBox(height: 40),
+                    SizedBox(height: isMobile ? 24 : 40),
                     // Profile Image
-                    _ProfileImageSection(controller: controller),
-                    const SizedBox(height: 20),
+                    _ProfileImageSection(
+                      controller: controller,
+                      isMobile: isMobile,
+                    ),
+                    SizedBox(height: isMobile ? 16 : 20),
                     // Name
                     Obx(
                       () => Text(
                         controller.name.value.isEmpty
                             ? 'User Name'
                             : controller.name.value,
-                        style: const TextStyle(
-                          fontSize: 26,
+                        style: TextStyle(
+                          fontSize: isMobile ? 22 : 26,
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: isMobile ? 4 : 6),
                     // Role
-                    const Text(
+                    Text(
                       'Restaurant Owner',
                       style: TextStyle(
-                        fontSize: 15,
-                        color: Color.fromARGB(255, 4, 10, 0),
+                        fontSize: isMobile ? 13 : 15,
+                        color: const Color.fromARGB(255, 4, 10, 0),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -58,14 +62,14 @@ class ProfileScreen extends StatelessWidget {
             ),
             // Form Section
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isMobile ? 16 : 24),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: isWide ? 600 : 500),
+                  constraints: BoxConstraints(maxWidth: isTablet ? 600 : 500),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.06),
@@ -74,19 +78,19 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(isMobile ? 24 : 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Personal Information',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: isMobile ? 18 : 20,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827),
+                            color: const Color(0xFF111827),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Name Field
                         Obx(
                           () => _ProfileField(
@@ -96,7 +100,7 @@ class ProfileScreen extends StatelessWidget {
                             icon: Icons.person_outline,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Phone Field
                         Obx(
                           () => _ProfileField(
@@ -107,7 +111,7 @@ class ProfileScreen extends StatelessWidget {
                             keyboardType: TextInputType.phone,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: isMobile ? 20 : 24),
                         // Email Field (read-only)
                         Obx(
                           () => _ProfileField(
@@ -118,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
                             readOnly: true,
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        SizedBox(height: isMobile ? 24 : 28),
                         // Save Button
                         Obx(
                           () => AnimatedContainer(
@@ -130,10 +134,14 @@ class ProfileScreen extends StatelessWidget {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(
+                                isMobile ? 12 : 14,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF7ED957).withValues(alpha: 0.3),
+                                  color: const Color(
+                                    0xFF7ED957,
+                                  ).withValues(alpha: 0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -144,7 +152,7 @@ class ProfileScreen extends StatelessWidget {
                                   ? null
                                   : controller.saveProfile,
                               icon: controller.isLoading.value
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 18,
                                       height: 18,
                                       child: CircularProgressIndicator(
@@ -152,13 +160,16 @@ class ProfileScreen extends StatelessWidget {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Icon(Icons.save_outlined, size: 20),
+                                  : Icon(
+                                      Icons.save_outlined,
+                                      size: isMobile ? 18 : 20,
+                                    ),
                               label: Text(
                                 controller.isLoading.value
                                     ? 'Saving...'
                                     : 'Save Profile',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 15 : 16,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -166,9 +177,13 @@ class ProfileScreen extends StatelessWidget {
                                 backgroundColor: Colors.transparent,
                                 foregroundColor: Colors.white,
                                 shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: isMobile ? 14 : 16,
+                                ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(
+                                    isMobile ? 12 : 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -189,8 +204,12 @@ class ProfileScreen extends StatelessWidget {
 
 class _ProfileImageSection extends StatelessWidget {
   final ProfileController controller;
+  final bool isMobile;
 
-  const _ProfileImageSection({required this.controller});
+  const _ProfileImageSection({
+    required this.controller,
+    required this.isMobile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +229,7 @@ class _ProfileImageSection extends StatelessWidget {
             ],
           ),
           child: CircleAvatar(
-            radius: 60,
+            radius: isMobile ? 50 : 60,
             backgroundColor: const Color(0xFFE8F5E0),
             backgroundImage: _buildImageProvider(),
             child: _buildPlaceholder(),
@@ -219,8 +238,8 @@ class _ProfileImageSection extends StatelessWidget {
         GestureDetector(
           onTap: controller.pickProfileImage,
           child: Container(
-            width: 40,
-            height: 40,
+            width: isMobile ? 36 : 40,
+            height: isMobile ? 36 : 40,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -232,7 +251,11 @@ class _ProfileImageSection extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.camera_alt, color: Color(0xFF7ED957), size: 20),
+            child: Icon(
+              Icons.camera_alt,
+              color: const Color(0xFF7ED957),
+              size: isMobile ? 18 : 20,
+            ),
           ),
         ),
       ],
@@ -306,7 +329,9 @@ class _ProfileField extends StatelessWidget {
             margin: const EdgeInsets.only(right: 12),
             child: Icon(
               icon,
-              color: readOnly ? const Color(0xFF9CA3AF) : const Color(0xFF7ED957),
+              color: readOnly
+                  ? const Color(0xFF9CA3AF)
+                  : const Color(0xFF7ED957),
               size: 20,
             ),
           ),

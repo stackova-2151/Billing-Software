@@ -39,9 +39,10 @@ class _SummaryCardState extends State<SummaryCard>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -52,10 +53,14 @@ class _SummaryCardState extends State<SummaryCard>
   }
 
   Color _getCardColor() {
-    if (widget.gradient == AppColors.successGradient) return const Color(0xFF34D399); // Rich emerald green
-    if (widget.gradient == AppColors.primaryGradient) return const Color(0xFF60A5FA); // Rich blue
-    if (widget.gradient == AppColors.warningGradient) return const Color(0xFFFBBF24); // Rich amber
-    if (widget.gradient == AppColors.infoGradient) return const Color(0xFFA78BFA); // Rich purple
+    if (widget.gradient == AppColors.successGradient)
+      return const Color(0xFF34D399); // Rich emerald green
+    if (widget.gradient == AppColors.primaryGradient)
+      return const Color(0xFF60A5FA); // Rich blue
+    if (widget.gradient == AppColors.warningGradient)
+      return const Color(0xFFFBBF24); // Rich amber
+    if (widget.gradient == AppColors.infoGradient)
+      return const Color(0xFFA78BFA); // Rich purple
     return const Color(0xFF60A5FA);
   }
 
@@ -95,7 +100,7 @@ class _SummaryCardState extends State<SummaryCard>
   @override
   Widget build(BuildContext context) {
     final cardColor = _getCardColor();
-    
+
     return ScaleTransition(
       scale: _scaleAnimation,
       child: GestureDetector(
@@ -131,11 +136,7 @@ class _SummaryCardState extends State<SummaryCard>
                     ),
                   ],
                 ),
-                child: Icon(
-                  widget.icon,
-                  color: _getIconColor(),
-                  size: 20,
-                ),
+                child: Icon(widget.icon, color: _getIconColor(), size: 20),
               ),
               const SizedBox(height: 8),
               AnimatedCounter(

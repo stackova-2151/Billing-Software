@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../controllers/expense_controller.dart';
 import '../models/expense.dart';
+import '../utils/responsive_helper.dart';
+import '../widgets/responsive/responsive_components.dart';
 
 class ExpenseManagementScreen extends StatelessWidget {
   const ExpenseManagementScreen({super.key});
@@ -17,7 +19,10 @@ class ExpenseManagementScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        title: const Text('Expense Management', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Expense Management',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -25,12 +30,20 @@ class ExpenseManagementScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF16A34A),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               onPressed: () => _showAddExpenseDialog(context, controller),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Expense', style: TextStyle(fontWeight: FontWeight.w700)),
+              label: const Text(
+                'Add Expense',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -49,7 +62,7 @@ class ExpenseManagementScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF2563EB).withOpacity(0.3),
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -60,10 +73,14 @@ class ExpenseManagementScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 40),
+                  child: const Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Column(
@@ -71,7 +88,11 @@ class ExpenseManagementScreen extends StatelessWidget {
                   children: [
                     const Text(
                       'Total Expenses',
-                      style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Obx(() {
@@ -101,43 +122,71 @@ class ExpenseManagementScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 80,
+                        color: Colors.grey[300],
+                      ),
                       const SizedBox(height: 16),
-                      Text('No expenses yet', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                      Text(
+                        'No expenses yet',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Click "Add Expense" to get started', style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+                      Text(
+                        'Click "Add Expense" to get started',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      ),
                     ],
                   ),
                 );
               }
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 16,
+                ),
                 child: Card(
                   elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.receipt_long, color: Color(0xFF2563EB), size: 24),
+                            const Icon(
+                              Icons.receipt_long,
+                              color: Color(0xFF2563EB),
+                              size: 24,
+                            ),
                             const SizedBox(width: 12),
                             const Text(
                               'Expense Records',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                             const Spacer(),
                             Text(
                               '${controller.expenses.length} entries',
-                              style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 20),
-                        _buildDataTable(controller),
+                        _buildDataTable(context, controller),
                       ],
                     ),
                   ),
@@ -150,28 +199,171 @@ class ExpenseManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDataTable(ExpenseController controller) {
+  Widget _buildDataTable(BuildContext context, ExpenseController controller) {
     return Obx(() {
-      return SizedBox(
-        width: double.infinity,
-        child: DataTable(
-          headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
-          headingRowHeight: 56,
-          dataRowMinHeight: 60,
-          dataRowMaxHeight: 60,
-          columnSpacing: 24,
-          horizontalMargin: 8,
-        columns: const [
-          DataColumn(label: Text('Date', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Title', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Amount', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)), numeric: true),
-          DataColumn(label: Text('Note', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-        ],
-        rows: controller.expenses.map((expense) => _buildDataRow(expense, controller)).toList(),
-        ),
-      );
+      // Use card layout on mobile/tablet, table on desktop
+      if (ResponsiveHelper.shouldUseCardLayout(context)) {
+        return _buildCardLayout(context, controller);
+      }
+      return _buildTableLayout(context, controller);
     });
+  }
+
+  Widget _buildTableLayout(BuildContext context, ExpenseController controller) {
+    return SizedBox(
+      width: double.infinity,
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
+        headingRowHeight: 56,
+        dataRowMinHeight: 60,
+        dataRowMaxHeight: 60,
+        columnSpacing: 24,
+        horizontalMargin: 8,
+        columns: const [
+          DataColumn(
+            label: Text(
+              'Date',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              'Title',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              'Amount',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+            numeric: true,
+          ),
+          DataColumn(
+            label: Text(
+              'Note',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              'Actions',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+        ],
+        rows: controller.expenses
+            .map((expense) => _buildDataRow(expense, controller))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildCardLayout(BuildContext context, ExpenseController controller) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: controller.expenses.length,
+      itemBuilder: (context, index) {
+        final expense = controller.expenses[index];
+
+        return ResponsiveCard(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('dd MMM yyyy').format(expense.date),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      '₹${expense.amount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (expense.note.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  expense.note,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 12),
+              MobileActionRow(
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 20),
+                    tooltip: 'View Details',
+                    onPressed: () => _showViewDialog(expense),
+                    color: const Color(0xFF64748B),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit Expense',
+                    onPressed: () =>
+                        _showEditExpenseDialog(expense, controller),
+                    color: const Color(0xFF2563EB),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete Expense',
+                    onPressed: () => _confirmDelete(expense.id, controller),
+                    color: const Color(0xFFEF4444),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   DataRow _buildDataRow(Expense expense, ExpenseController controller) {
@@ -184,7 +376,10 @@ class ExpenseManagementScreen extends StatelessWidget {
             children: [
               Text(
                 DateFormat('dd MMM yyyy').format(expense.date),
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
               Text(
                 DateFormat('hh:mm a').format(expense.createdAt),
@@ -204,9 +399,11 @@ class ExpenseManagementScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF4444).withOpacity(0.1),
+              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+              border: Border.all(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+              ),
             ),
             child: Text(
               '₹${expense.amount.toStringAsFixed(2)}',
@@ -237,17 +434,29 @@ class ExpenseManagementScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.visibility_outlined, color: Color(0xFF64748B), size: 20),
+                icon: const Icon(
+                  Icons.visibility_outlined,
+                  color: Color(0xFF64748B),
+                  size: 20,
+                ),
                 tooltip: 'View Details',
                 onPressed: () => _showViewDialog(expense),
               ),
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Color(0xFF2563EB), size: 20),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
                 tooltip: 'Edit Expense',
                 onPressed: () => _showEditExpenseDialog(expense, controller),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 20),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Color(0xFFEF4444),
+                  size: 20,
+                ),
                 tooltip: 'Delete Expense',
                 onPressed: () => _confirmDelete(expense.id, controller),
               ),
@@ -258,7 +467,10 @@ class ExpenseManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showAddExpenseDialog(BuildContext context, ExpenseController controller) {
+  void _showAddExpenseDialog(
+    BuildContext context,
+    ExpenseController controller,
+  ) {
     final titleController = TextEditingController();
     final amountController = TextEditingController();
     final noteController = TextEditingController();
@@ -281,13 +493,23 @@ class ExpenseManagementScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.add_circle, color: Color(0xFF2563EB), size: 24),
+                        child: const Icon(
+                          Icons.add_circle,
+                          color: Color(0xFF2563EB),
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      const Text('Add Expense', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                      const Text(
+                        'Add Expense',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -295,7 +517,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     controller: titleController,
                     decoration: InputDecoration(
                       labelText: 'Title *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.title),
@@ -304,14 +528,20 @@ class ExpenseManagementScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   TextField(
                     controller: amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
                     ],
                     decoration: InputDecoration(
                       labelText: 'Amount *',
                       prefixText: '₹ ',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.currency_rupee),
@@ -333,7 +563,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     child: InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'Date *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.calendar_today),
@@ -356,7 +588,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     maxLines: 3,
                     decoration: InputDecoration(
                       labelText: 'Note (Optional)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.note),
@@ -369,28 +603,44 @@ class ExpenseManagementScreen extends StatelessWidget {
                     children: [
                       TextButton(
                         onPressed: () => Get.back(),
-                        child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
                         onPressed: () async {
                           final title = titleController.text.trim();
                           final amountText = amountController.text.trim();
 
                           if (title.isEmpty) {
-                            Get.snackbar('Error', 'Please enter title', snackPosition: SnackPosition.BOTTOM);
+                            Get.snackbar(
+                              'Error',
+                              'Please enter title',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
                             return;
                           }
 
                           final amount = double.tryParse(amountText);
                           if (amount == null || amount <= 0) {
-                            Get.snackbar('Error', 'Please enter valid amount', snackPosition: SnackPosition.BOTTOM);
+                            Get.snackbar(
+                              'Error',
+                              'Please enter valid amount',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
                             return;
                           }
 
@@ -401,7 +651,10 @@ class ExpenseManagementScreen extends StatelessWidget {
                             note: noteController.text.trim(),
                           );
                         },
-                        child: const Text('Add Expense', style: TextStyle(fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Add Expense',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ],
                   ),
@@ -416,7 +669,9 @@ class ExpenseManagementScreen extends StatelessWidget {
 
   void _showEditExpenseDialog(Expense expense, ExpenseController controller) {
     final titleController = TextEditingController(text: expense.title);
-    final amountController = TextEditingController(text: expense.amount.toString());
+    final amountController = TextEditingController(
+      text: expense.amount.toString(),
+    );
     final noteController = TextEditingController(text: expense.note);
     DateTime selectedDate = expense.date;
 
@@ -437,13 +692,23 @@ class ExpenseManagementScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.edit, color: Color(0xFF2563EB), size: 24),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Color(0xFF2563EB),
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      const Text('Edit Expense', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                      const Text(
+                        'Edit Expense',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -451,7 +716,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     controller: titleController,
                     decoration: InputDecoration(
                       labelText: 'Title *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.title),
@@ -460,14 +727,20 @@ class ExpenseManagementScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   TextField(
                     controller: amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
                     ],
                     decoration: InputDecoration(
                       labelText: 'Amount *',
                       prefixText: '₹ ',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.currency_rupee),
@@ -489,7 +762,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     child: InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'Date *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.calendar_today),
@@ -512,7 +787,9 @@ class ExpenseManagementScreen extends StatelessWidget {
                     maxLines: 3,
                     decoration: InputDecoration(
                       labelText: 'Note (Optional)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
                       prefixIcon: const Icon(Icons.note),
@@ -525,28 +802,44 @@ class ExpenseManagementScreen extends StatelessWidget {
                     children: [
                       TextButton(
                         onPressed: () => Get.back(),
-                        child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
                         onPressed: () async {
                           final title = titleController.text.trim();
                           final amountText = amountController.text.trim();
 
                           if (title.isEmpty) {
-                            Get.snackbar('Error', 'Please enter title', snackPosition: SnackPosition.BOTTOM);
+                            Get.snackbar(
+                              'Error',
+                              'Please enter title',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
                             return;
                           }
 
                           final amount = double.tryParse(amountText);
                           if (amount == null || amount <= 0) {
-                            Get.snackbar('Error', 'Please enter valid amount', snackPosition: SnackPosition.BOTTOM);
+                            Get.snackbar(
+                              'Error',
+                              'Please enter valid amount',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
                             return;
                           }
 
@@ -559,7 +852,10 @@ class ExpenseManagementScreen extends StatelessWidget {
                             createdAt: expense.createdAt,
                           );
                         },
-                        child: const Text('Update', style: TextStyle(fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Update',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ],
                   ),
@@ -588,21 +884,40 @@ class ExpenseManagementScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF64748B).withOpacity(0.1),
+                      color: const Color(0xFF64748B).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.info_outline, color: Color(0xFF64748B), size: 24),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF64748B),
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Expense Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Expense Details',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               _buildDetailRow('Title', expense.title),
-              _buildDetailRow('Amount', '₹${expense.amount.toStringAsFixed(2)}'),
-              _buildDetailRow('Date', DateFormat('dd MMM yyyy').format(expense.date)),
-              _buildDetailRow('Created At', DateFormat('dd MMM yyyy, hh:mm a').format(expense.createdAt)),
-              _buildDetailRow('Note', expense.note.isEmpty ? 'No note' : expense.note),
+              _buildDetailRow(
+                'Amount',
+                '₹${expense.amount.toStringAsFixed(2)}',
+              ),
+              _buildDetailRow(
+                'Date',
+                DateFormat('dd MMM yyyy').format(expense.date),
+              ),
+              _buildDetailRow(
+                'Created At',
+                DateFormat('dd MMM yyyy, hh:mm a').format(expense.createdAt),
+              ),
+              _buildDetailRow(
+                'Note',
+                expense.note.isEmpty ? 'No note' : expense.note,
+              ),
               const SizedBox(height: 24),
               Align(
                 alignment: Alignment.centerRight,
@@ -610,11 +925,19 @@ class ExpenseManagementScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF64748B),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   onPressed: () => Get.back(),
-                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
@@ -634,7 +957,11 @@ class ExpenseManagementScreen extends StatelessWidget {
             width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.grey),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.grey,
+              ),
             ),
           ),
           Expanded(
@@ -657,13 +984,20 @@ class ExpenseManagementScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.warning_amber, color: Color(0xFFEF4444), size: 24),
+              child: const Icon(
+                Icons.warning_amber,
+                color: Color(0xFFEF4444),
+                size: 24,
+              ),
             ),
             const SizedBox(width: 12),
-            const Text('Delete Expense', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            const Text(
+              'Delete Expense',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+            ),
           ],
         ),
         content: const Text(
@@ -673,17 +1007,25 @@ class ExpenseManagementScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             onPressed: () => controller.deleteExpense(id),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),

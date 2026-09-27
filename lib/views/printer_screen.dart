@@ -52,7 +52,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
       _loading = false;
     });
     if (devices.isEmpty) {
-      _snack('No paired devices found. Pair your printer in Settings → Bluetooth first.');
+      _snack("Please turn on Bluetooth and pair your Bluetooth printer first.");
     }
   }
 
@@ -66,7 +66,11 @@ class _PrinterScreenState extends State<PrinterScreen> {
       _isConnected = connected;
       _loading = false;
     });
-    _snack(ok ? 'Connected to ${device.name}' : 'Failed to connect. Make sure printer is on.');
+    _snack(
+      ok
+          ? 'Connected to ${device.name}'
+          : 'Failed to connect. Make sure printer is on.',
+    );
   }
 
   Future<void> _disconnect() async {
@@ -193,7 +197,9 @@ class _PrinterScreenState extends State<PrinterScreen> {
               _isConnected
                   ? Icons.bluetooth_connected_rounded
                   : Icons.bluetooth_disabled_rounded,
-              color: _isConnected ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF),
+              color: _isConnected
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFF9CA3AF),
               size: 22,
             ),
           ),
@@ -234,7 +240,10 @@ class _PrinterScreenState extends State<PrinterScreen> {
             GestureDetector(
               onTap: _disconnect,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEE2E2),
                   borderRadius: BorderRadius.circular(10),
@@ -256,9 +265,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
 
   Widget _buildDeviceList() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: _accent),
-      );
+      return const Center(child: CircularProgressIndicator(color: _accent));
     }
 
     if (_devices.isEmpty) {
@@ -273,12 +280,15 @@ class _PrinterScreenState extends State<PrinterScreen> {
                 color: _accent.withOpacity(0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.bluetooth_searching_rounded,
-                  color: _accent, size: 34),
+              child: const Icon(
+                Icons.bluetooth_searching_rounded,
+                color: _accent,
+                size: 34,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
-              'No devices listed',
+              'No Bluetooth printers found',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -289,7 +299,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Tap Scan to load paired devices, or pair your printer in Settings → Bluetooth first.',
+                'Pair your thermal printer in Settings → Bluetooth first.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Color(0xFF6B6880)),
               ),
@@ -347,8 +357,8 @@ class _DeviceTile extends StatelessWidget {
           color: isConnected
               ? const Color(0xFF22C55E).withOpacity(0.5)
               : isSaved
-                  ? _accent.withOpacity(0.4)
-                  : const Color(0xFFEAE8FF),
+              ? _accent.withOpacity(0.4)
+              : const Color(0xFFEAE8FF),
           width: isConnected || isSaved ? 1.5 : 1,
         ),
       ),
@@ -364,9 +374,7 @@ class _DeviceTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            isConnected
-                ? Icons.print_rounded
-                : Icons.bluetooth_rounded,
+            isConnected ? Icons.print_rounded : Icons.bluetooth_rounded,
             color: isConnected ? const Color(0xFF22C55E) : _accent,
             size: 20,
           ),
@@ -389,7 +397,10 @@ class _DeviceTile extends StatelessWidget {
         ),
         trailing: isConnected
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(8),
@@ -406,7 +417,10 @@ class _DeviceTile extends StatelessWidget {
             : GestureDetector(
                 onTap: onConnect,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: _accent,
                     borderRadius: BorderRadius.circular(10),

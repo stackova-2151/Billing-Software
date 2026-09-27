@@ -7,12 +7,14 @@ import 'package:get/get.dart';
 import '../animations/animated_counter.dart';
 import '../controllers/pos_dashboard_controller.dart';
 import '../theme/app_colors.dart';
+import '../utils/responsive_helper.dart';
 
 class PosDashboardViewPremium extends StatefulWidget {
   const PosDashboardViewPremium({super.key});
 
   @override
-  State<PosDashboardViewPremium> createState() => _PosDashboardViewPremiumState();
+  State<PosDashboardViewPremium> createState() =>
+      _PosDashboardViewPremiumState();
 }
 
 class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
@@ -36,15 +38,13 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.05),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _pageAnimationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _pageAnimationController,
+            curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _pageAnimationController.forward();
   }
@@ -58,13 +58,14 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<PosDashboardController>();
+    final isMobile = ResponsiveHelper.isMobile(context);
 
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
         position: _slideAnimation,
         child: Container(
-          margin: const EdgeInsets.all(AppSpacing.lg),
+          margin: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.lg),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final w = constraints.maxWidth;
@@ -74,16 +75,16 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHeader(),
-                    const SizedBox(height: AppSpacing.xl),
-                    Obx(() => _buildSummaryCards(controller, w)),
-                    const SizedBox(height: AppSpacing.xl),
+                    _buildHeader(isMobile),
+                    SizedBox(height: isMobile ? AppSpacing.lg : AppSpacing.xl),
+                    Obx(() => _buildSummaryCards(controller, w, isMobile)),
+                    SizedBox(height: isMobile ? AppSpacing.lg : AppSpacing.xl),
                     if (isWide)
                       _buildWideLayout(controller)
                     else
-                      _buildNarrowLayout(controller),
-                    const SizedBox(height: AppSpacing.xl),
-                    _buildRecentOrders(controller),
+                      _buildNarrowLayout(controller, isMobile),
+                    SizedBox(height: isMobile ? AppSpacing.lg : AppSpacing.xl),
+                    _buildRecentOrders(controller, isMobile),
                   ],
                 ),
               );
@@ -94,7 +95,7 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Row(
       children: [
         Expanded(
@@ -104,17 +105,17 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
               Text(
                 'Dashboard',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: isMobile ? 24 : 28,
                   fontWeight: FontWeight.w900,
                   color: AppColors.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: isMobile ? 2 : 4),
               Text(
                 'Welcome back! Here\'s what\'s happening today.',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: isMobile ? 12 : 14,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -126,8 +127,12 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
     );
   }
 
-  Widget _buildSummaryCards(PosDashboardController controller, double width) {
-    final crossAxisCount = width >= 1200 ? 4 : width >= 860 ? 2 : 1;
+  Widget _buildSummaryCards(
+    PosDashboardController controller,
+    double width,
+    bool isMobile,
+  ) {
+    final crossAxisCount = ResponsiveHelper.getSummaryCardCount(context);
 
     final cards = [
       _SummaryCardData(
@@ -169,9 +174,9 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        crossAxisSpacing: AppSpacing.lg,
-        mainAxisSpacing: AppSpacing.lg,
-        childAspectRatio: crossAxisCount == 4 ? 2.8 : 2.9,
+        crossAxisSpacing: isMobile ? AppSpacing.md : AppSpacing.lg,
+        mainAxisSpacing: isMobile ? AppSpacing.md : AppSpacing.lg,
+        childAspectRatio: isMobile ? 1.5 : (crossAxisCount == 4 ? 2.8 : 2.9),
       ),
       itemCount: cards.length,
       itemBuilder: (context, i) {
@@ -199,7 +204,9 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
                 SizedBox(
                   height: 200,
                   child: Obx(() {
-                    final values = controller.last7DaysSales.toList(growable: false);
+                    final values = controller.last7DaysSales.toList(
+                      growable: false,
+                    );
                     return _AnimatedLineChart(
                       values: values,
                       gradient: AppColors.successGradient,
@@ -228,7 +235,9 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
               _PremiumCard(
                 title: 'Top Selling Items',
                 child: Obx(() {
-                  final items = controller.topSellingItems.toList(growable: false);
+                  final items = controller.topSellingItems.toList(
+                    growable: false,
+                  );
                   return _TopItemsList(items: items);
                 }),
               ),
@@ -239,7 +248,7 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
     );
   }
 
-  Widget _buildNarrowLayout(PosDashboardController controller) {
+  Widget _buildNarrowLayout(PosDashboardController controller, bool isMobile) {
     return Column(
       children: [
         _PremiumCard(
@@ -248,11 +257,13 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildSectionTitle('Last 7 days trend'),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: isMobile ? AppSpacing.sm : AppSpacing.md),
               SizedBox(
-                height: 200,
+                height: isMobile ? 160 : 200,
                 child: Obx(() {
-                  final values = controller.last7DaysSales.toList(growable: false);
+                  final values = controller.last7DaysSales.toList(
+                    growable: false,
+                  );
                   return _AnimatedLineChart(
                     values: values,
                     gradient: AppColors.successGradient,
@@ -262,7 +273,7 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: isMobile ? AppSpacing.md : AppSpacing.lg),
         _PremiumCard(
           title: 'Payment Breakdown',
           child: Obx(() {
@@ -272,7 +283,7 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
             );
           }),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: isMobile ? AppSpacing.md : AppSpacing.lg),
         _PremiumCard(
           title: 'Top Selling Items',
           child: Obx(() {
@@ -284,12 +295,12 @@ class _PosDashboardViewPremiumState extends State<PosDashboardViewPremium>
     );
   }
 
-  Widget _buildRecentOrders(PosDashboardController controller) {
+  Widget _buildRecentOrders(PosDashboardController controller, bool isMobile) {
     return _PremiumCard(
       title: 'Recent Orders',
       child: Obx(() {
         final orders = controller.recentOrders.toList(growable: false);
-        return _RecentOrdersTable(orders: orders);
+        return _RecentOrdersTable(orders: orders, isMobile: isMobile);
       }),
     );
   }
@@ -333,7 +344,9 @@ class _PremiumCardState extends State<_PremiumCard> {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(
-            color: _isHovered ? AppColors.primary.withOpacity(0.3) : AppColors.border,
+            color: _isHovered
+                ? AppColors.primary.withValues(alpha: 0.3)
+                : AppColors.border,
             width: 1,
           ),
           boxShadow: _isHovered ? AppShadows.large : AppShadows.medium,
@@ -385,10 +398,7 @@ class _AnimatedSummaryCard extends StatefulWidget {
   final _SummaryCardData data;
   final Duration delay;
 
-  const _AnimatedSummaryCard({
-    required this.data,
-    this.delay = Duration.zero,
-  });
+  const _AnimatedSummaryCard({required this.data, this.delay = Duration.zero});
 
   @override
   State<_AnimatedSummaryCard> createState() => _AnimatedSummaryCardState();
@@ -409,13 +419,15 @@ class _AnimatedSummaryCardState extends State<_AnimatedSummaryCard>
       duration: const Duration(milliseconds: 600),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
@@ -459,17 +471,15 @@ class _AnimatedSummaryCardState extends State<_AnimatedSummaryCard>
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     boxShadow: [
                       BoxShadow(
-                        color: widget.data.gradient.colors.first.withOpacity(0.3),
+                        color: widget.data.gradient.colors.first.withValues(
+                          alpha: 0.3,
+                        ),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: Icon(
-                    widget.data.icon,
-                    color: Colors.white,
-                    size: 26,
-                  ),
+                  child: Icon(widget.data.icon, color: Colors.white, size: 26),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -531,10 +541,7 @@ class _AnimatedBarChart extends StatefulWidget {
   final List<double> values;
   final LinearGradient gradient;
 
-  const _AnimatedBarChart({
-    required this.values,
-    required this.gradient,
-  });
+  const _AnimatedBarChart({required this.values, required this.gradient});
 
   @override
   State<_AnimatedBarChart> createState() => _AnimatedBarChartState();
@@ -553,9 +560,10 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -620,12 +628,7 @@ class _AnimatedBarChartPainter extends CustomPainter {
       final targetH = maxV <= 0 ? 0.0 : (v / maxV) * (size.height - 10);
       final h = targetH * progress;
 
-      final rect = Rect.fromLTWH(
-        i * (barW + gap),
-        size.height - h,
-        barW,
-        h,
-      );
+      final rect = Rect.fromLTWH(i * (barW + gap), size.height - h, barW, h);
 
       final paint = Paint()
         ..shader = gradient.createShader(rect)
@@ -650,10 +653,7 @@ class _AnimatedLineChart extends StatefulWidget {
   final List<double> values;
   final LinearGradient gradient;
 
-  const _AnimatedLineChart({
-    required this.values,
-    required this.gradient,
-  });
+  const _AnimatedLineChart({required this.values, required this.gradient});
 
   @override
   State<_AnimatedLineChart> createState() => _AnimatedLineChartState();
@@ -672,9 +672,10 @@ class _AnimatedLineChartState extends State<_AnimatedLineChart>
       duration: const Duration(milliseconds: 1500),
     );
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -774,8 +775,8 @@ class _AnimatedLineChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          gradient.colors.first.withOpacity(0.3),
-          gradient.colors.first.withOpacity(0.05),
+          gradient.colors.first.withValues(alpha: 0.3),
+          gradient.colors.first.withValues(alpha: 0.05),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
@@ -797,11 +798,7 @@ class _AnimatedLineChartPainter extends CustomPainter {
     for (int i = 0; i < visiblePoints && i < points.length; i++) {
       final p = points[i];
       canvas.drawCircle(p, 5, Paint()..color = Colors.white);
-      canvas.drawCircle(
-        p,
-        4,
-        Paint()..color = gradient.colors.first,
-      );
+      canvas.drawCircle(p, 4, Paint()..color = gradient.colors.first);
     }
   }
 
@@ -817,10 +814,7 @@ class _AnimatedPaymentBreakdown extends StatefulWidget {
   final double cash;
   final double online;
 
-  const _AnimatedPaymentBreakdown({
-    required this.cash,
-    required this.online,
-  });
+  const _AnimatedPaymentBreakdown({required this.cash, required this.online});
 
   @override
   State<_AnimatedPaymentBreakdown> createState() =>
@@ -840,9 +834,10 @@ class _AnimatedPaymentBreakdownState extends State<_AnimatedPaymentBreakdown>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -1006,9 +1001,10 @@ class _PaymentStatCardState extends State<_PaymentStatCard>
       duration: const Duration(milliseconds: 400),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
@@ -1028,11 +1024,9 @@ class _PaymentStatCardState extends State<_PaymentStatCard>
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: widget.color.withOpacity(0.08),
+          color: widget.color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: widget.color.withOpacity(0.2),
-          ),
+          border: Border.all(color: widget.color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -1086,7 +1080,19 @@ class _TopItemsList extends StatelessWidget {
       );
     }
 
-    final topThree = items.take(3).toList(); return Column(crossAxisAlignment: CrossAxisAlignment.stretch,mainAxisSize: MainAxisSize.min,children: [for (int i = 0; i < topThree.length; i++)_AnimatedTopItem(item: topThree[i],rank: i + 1,delay: Duration(milliseconds: 100 * i),),],);
+    final topThree = items.take(3).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < topThree.length; i++)
+          _AnimatedTopItem(
+            item: topThree[i],
+            rank: i + 1,
+            delay: Duration(milliseconds: 100 * i),
+          ),
+      ],
+    );
   }
 }
 
@@ -1158,9 +1164,7 @@ class _AnimatedTopItemState extends State<_AnimatedTopItem>
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  gradient: widget.rank <= 3
-                      ? AppColors.primaryGradient
-                      : null,
+                  gradient: widget.rank <= 3 ? AppColors.primaryGradient : null,
                   color: widget.rank > 3 ? AppColors.surfaceVariant : null,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
@@ -1219,8 +1223,9 @@ class _AnimatedTopItemState extends State<_AnimatedTopItem>
 // Recent Orders Table - First 5 + Scrollable Rest
 class _RecentOrdersTable extends StatelessWidget {
   final List<RecentOrderVm> orders;
+  final bool isMobile;
 
-  const _RecentOrdersTable({required this.orders});
+  const _RecentOrdersTable({required this.orders, this.isMobile = false});
 
   String _two(int v) => v.toString().padLeft(2, '0');
 
@@ -1233,7 +1238,54 @@ class _RecentOrdersTable extends StatelessWidget {
       );
     }
 
-    final firstFive = orders.take(5).toList(); return Column(crossAxisAlignment: CrossAxisAlignment.stretch,mainAxisSize: MainAxisSize.min,children: [Container(padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),),child: Row(children: [Expanded(child: Text('Order ID',style: TextStyle(fontSize: 12,fontWeight: FontWeight.w700,color: AppColors.textSecondary,letterSpacing: 0.5,),),),SizedBox(width: 140,child: Text('Amount',textAlign: TextAlign.right,style: TextStyle(fontSize: 12,fontWeight: FontWeight.w700,color: AppColors.textSecondary,letterSpacing: 0.5,),),),],),),for (int i = 0; i < firstFive.length; i++)_AnimatedOrderRow(order: firstFive[i],delay: Duration(milliseconds: 50 * i),),],);
+    final firstFive = orders.take(5).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: AppColors.border, width: 2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Order ID',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 140,
+                child: Text(
+                  'Amount',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        for (int i = 0; i < firstFive.length; i++)
+          _AnimatedOrderRow(
+            order: firstFive[i],
+            delay: Duration(milliseconds: 50 * i),
+          ),
+      ],
+    );
   }
 }
 
@@ -1241,10 +1293,7 @@ class _AnimatedOrderRow extends StatefulWidget {
   final RecentOrderVm order;
   final Duration delay;
 
-  const _AnimatedOrderRow({
-    required this.order,
-    this.delay = Duration.zero,
-  });
+  const _AnimatedOrderRow({required this.order, this.delay = Duration.zero});
 
   @override
   State<_AnimatedOrderRow> createState() => _AnimatedOrderRowState();
@@ -1368,10 +1417,7 @@ class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String message;
 
-  const _EmptyState({
-    required this.icon,
-    required this.message,
-  });
+  const _EmptyState({required this.icon, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -1388,11 +1434,7 @@ class _EmptyState extends StatelessWidget {
                 color: AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: AppColors.textTertiary,
-              ),
+              child: Icon(icon, size: 32, color: AppColors.textTertiary),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -1410,5 +1452,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
-

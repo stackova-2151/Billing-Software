@@ -7,12 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
+import 'package:http_parser/http_parser.dart' as http_parser;
 
 import '../controllers/menu_controller.dart' as app;
 import '../controllers/category_controller.dart';
 import '../models/menu_item.dart';
 import '../services/r2_upload_service.dart';
+import '../utils/responsive_helper.dart';
 import 'category_dropdown_with_add.dart';
 
 // ─────────────────────────────────────────────
@@ -44,29 +45,33 @@ class _T {
   // Shadows
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-        color: Colors.black.withValues(alpha: 0.10),
-        blurRadius: 40,
-        spreadRadius: 0,
-        offset: const Offset(0, 16)),
+      color: Colors.black.withValues(alpha: 0.10),
+      blurRadius: 40,
+      spreadRadius: 0,
+      offset: const Offset(0, 16),
+    ),
     BoxShadow(
-        color: Colors.black.withValues(alpha: 0.06),
-        blurRadius: 12,
-        spreadRadius: 0,
-        offset: const Offset(0, 4)),
+      color: Colors.black.withValues(alpha: 0.06),
+      blurRadius: 12,
+      spreadRadius: 0,
+      offset: const Offset(0, 4),
+    ),
   ];
 
   static List<BoxShadow> fieldShadow = [
     BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
-        blurRadius: 8,
-        offset: const Offset(0, 2)),
+      color: Colors.black.withValues(alpha: 0.04),
+      blurRadius: 8,
+      offset: const Offset(0, 2),
+    ),
   ];
 
   static List<BoxShadow> btnShadow = [
     BoxShadow(
-        color: g500.withValues(alpha: 0.35),
-        blurRadius: 16,
-        offset: const Offset(0, 6)),
+      color: g500.withValues(alpha: 0.35),
+      blurRadius: 16,
+      offset: const Offset(0, 6),
+    ),
   ];
 }
 
@@ -96,7 +101,7 @@ class _SectionCard extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -133,10 +138,7 @@ class _SectionCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Divider(color: _T.border, height: 1, indent: 20, endIndent: 20),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(20), child: child),
         ],
       ),
     );
@@ -263,16 +265,24 @@ class _PremiumDropdown<T> extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
           filled: false,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
         ),
-        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-            color: _T.subtitle, size: 20),
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: _T.subtitle,
+          size: 20,
+        ),
         style: const TextStyle(
-            fontSize: 14.5, color: _T.title, fontWeight: FontWeight.w500),
+          fontSize: 14.5,
+          color: _T.title,
+          fontWeight: FontWeight.w500,
+        ),
         dropdownColor: _T.surface,
         borderRadius: BorderRadius.circular(14),
         items: items,
@@ -322,8 +332,9 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
     'https://billing-software-r2-upload.billing-software.workers.dev/upload-to-r2',
   );
 
-  final R2UploadService _uploadService =
-      R2UploadService(endpoint: _uploadEndpoint);
+  final R2UploadService _uploadService = R2UploadService(
+    endpoint: _uploadEndpoint,
+  );
 
   late AnimationController _animCtrl;
   late Animation<double> _scaleAnim;
@@ -336,30 +347,36 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
 
     imageUrlController = TextEditingController(text: e?.image ?? '');
     nameController = TextEditingController(text: e?.name ?? '');
-    priceController =
-        TextEditingController(text: e == null ? '' : e.price.toStringAsFixed(0));
+    priceController = TextEditingController(
+      text: e == null ? '' : e.price.toStringAsFixed(0),
+    );
     descController = TextEditingController(text: e?.description ?? '');
-    prepController =
-        TextEditingController(text: e == null ? '' : e.prepMinutes.toString());
+    prepController = TextEditingController(
+      text: e == null ? '' : e.prepMinutes.toString(),
+    );
     discountController = TextEditingController(
-        text: e == null ? '' : e.discountPercent.toString());
+      text: e == null ? '' : e.discountPercent.toString(),
+    );
 
-    selectedCategory = (e?.category ??
-            (widget.menuController.categories.length > 1
-                ? widget.menuController.categories[1]
-                : ''))
-        .obs;
+    selectedCategory =
+        (e?.category ??
+                (widget.menuController.categories.length > 1
+                    ? widget.menuController.categories[1]
+                    : ''))
+            .obs;
     gst = (e?.gstPercent ?? 5.0).obs;
     isVeg = (e?.isVeg ?? true).obs;
 
     // Entry animation
     _animCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 320));
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
     _scaleAnim = CurvedAnimation(
-        parent: _animCtrl,
-        curve: Curves.easeOutBack,
-        reverseCurve: Curves.easeIn)
-      ..drive(Tween(begin: 0.88, end: 1.0));
+      parent: _animCtrl,
+      curve: Curves.easeOutBack,
+      reverseCurve: Curves.easeIn,
+    )..drive(Tween(begin: 0.88, end: 1.0));
     _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
     _animCtrl.forward();
   }
@@ -403,20 +420,33 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
         final List<http.MultipartFile> files = [];
         for (final file in pickedImages) {
           final ext = (file.name.split('.').lastOrNull ?? '').toLowerCase();
-          final mime = {'png': 'png', 'webp': 'webp', 'gif': 'gif'}[ext] ?? 'jpeg';
+          final mime =
+              {'png': 'png', 'webp': 'webp', 'gif': 'gif'}[ext] ?? 'jpeg';
           if (kIsWeb) {
             final Uint8List bytes = await file.readAsBytes();
-            files.add(http.MultipartFile.fromBytes('images', bytes,
+            files.add(
+              http.MultipartFile.fromBytes(
+                'images',
+                bytes,
                 filename: file.name,
-                contentType: MediaType('image', mime)));
+                contentType: http_parser.MediaType('image', mime),
+              ),
+            );
           } else {
-            files.add(await http.MultipartFile.fromPath('images', file.path,
+            files.add(
+              await http.MultipartFile.fromPath(
+                'images',
+                file.path,
                 filename: file.name,
-                contentType: MediaType('image', mime)));
+                contentType: http_parser.MediaType('image', mime),
+              ),
+            );
           }
         }
         uploadedUrls = await _uploadService.uploadImages(
-            propertyName: name, images: files);
+          propertyName: name,
+          images: files,
+        );
         if (uploadedUrls.isNotEmpty) {
           imageUrl = uploadedUrls.first;
           imageUrlController.text = imageUrl;
@@ -481,8 +511,7 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile> images =
-          await _picker.pickMultiImage(imageQuality: 85);
+      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 85);
       if (images.isEmpty) return;
       pickedImages.assignAll(images);
     } catch (_) {
@@ -493,46 +522,50 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
   // ── Build ──────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final sw = MediaQuery.of(context).size.width;
-    final isDesktop = sw > 900;
-    final isTablet = sw > 600 && sw <= 900;
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isTablet = ResponsiveHelper.isTablet(context);
+    final isDesktop = ResponsiveHelper.isDesktop(context);
 
-    final double maxW = isDesktop ? 960 : (isTablet ? 640 : double.infinity);
-    final double maxH = isDesktop ? 740 : 680;
+    final double maxW = ResponsiveHelper.getDialogWidth(context);
+    final double maxH = isDesktop ? 740 : (isTablet ? 680 : double.infinity);
 
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 40 : (isTablet ? 24 : 16),
-        vertical: 32,
+        vertical: isMobile ? 8 : 32,
       ),
       child: FadeTransition(
         opacity: _fadeAnim,
         child: ScaleTransition(
           scale: _scaleAnim,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
-            decoration: BoxDecoration(
-              color: _T.bg,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: _T.cardShadow,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(isDesktop ? 28 : 20),
-                      child: isDesktop
-                          ? _buildDesktopBody()
-                          : _buildMobileBody(),
+          child: SafeArea(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
+              decoration: BoxDecoration(
+                color: _T.bg,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: _T.cardShadow,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildHeader(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(
+                          isDesktop ? 28 : (isTablet ? 24 : 16),
+                        ),
+                        child: isDesktop
+                            ? _buildDesktopBody()
+                            : _buildMobileBody(),
+                      ),
                     ),
-                  ),
-                  _buildFooter(),
-                ],
+                    _buildFooter(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -561,7 +594,9 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
               color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2), width: 1),
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
             child: Icon(
               isEdit ? Icons.edit_rounded : Icons.add_rounded,
@@ -615,7 +650,7 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, -4),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -623,10 +658,12 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
         children: [
           _CancelButton(onTap: () => Get.back()),
           const SizedBox(width: 12),
-          Obx(() => _SaveButton(
-                isLoading: isUploading.value,
-                onTap: isUploading.value ? null : _save,
-              )),
+          Obx(
+            () => _SaveButton(
+              isLoading: isUploading.value,
+              onTap: isUploading.value ? null : _save,
+            ),
+          ),
         ],
       ),
     );
@@ -689,11 +726,11 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                         onEdit: _pickImages,
                       )
                     : hasUrl
-                        ? _UrlImageWidget(
-                            url: imageUrlController.text.trim(),
-                            onEdit: _pickImages,
-                          )
-                        : _UploadPlaceholder(onTap: _pickImages),
+                    ? _UrlImageWidget(
+                        url: imageUrlController.text.trim(),
+                        onEdit: _pickImages,
+                      )
+                    : _UploadPlaceholder(onTap: _pickImages),
               );
             }),
           ),
@@ -716,7 +753,9 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: i == 0 ? _T.g500 : _T.border, width: 2),
+                          color: i == 0 ? _T.g500 : _T.border,
+                          width: 2,
+                        ),
                         boxShadow: _T.fieldShadow,
                       ),
                       child: ClipRRect(
@@ -750,8 +789,11 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                 controller: nameController,
                 label: 'Item Name',
                 hint: 'e.g. Margherita Pizza',
-                prefix: const Icon(Icons.restaurant_menu_rounded,
-                    size: 18, color: _T.hint),
+                prefix: const Icon(
+                  Icons.restaurant_menu_rounded,
+                  size: 18,
+                  color: _T.hint,
+                ),
               ),
               const SizedBox(height: 14),
               Row(
@@ -763,13 +805,18 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                       hint: '0',
                       keyboardType: TextInputType.number,
                       prefix: const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                        child: Text('₹',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: _T.subtitle)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                        child: Text(
+                          '₹',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: _T.subtitle,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -801,10 +848,12 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
               ),
               const SizedBox(height: 14),
               // Veg toggle
-              Obx(() => _VegToggle(
-                    isVeg: isVeg.value,
-                    onChanged: (v) => isVeg.value = v,
-                  )),
+              Obx(
+                () => _VegToggle(
+                  isVeg: isVeg.value,
+                  onChanged: (v) => isVeg.value = v,
+                ),
+              ),
             ],
           ),
         ),
@@ -837,8 +886,11 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                   label: 'Prep Time',
                   hint: 'min',
                   keyboardType: TextInputType.number,
-                  prefix: const Icon(Icons.timer_outlined,
-                      size: 18, color: _T.hint),
+                  prefix: const Icon(
+                    Icons.timer_outlined,
+                    size: 18,
+                    color: _T.hint,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -848,8 +900,11 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                   label: 'Discount %',
                   hint: '0',
                   keyboardType: TextInputType.number,
-                  prefix: const Icon(Icons.local_offer_outlined,
-                      size: 18, color: _T.hint),
+                  prefix: const Icon(
+                    Icons.local_offer_outlined,
+                    size: 18,
+                    color: _T.hint,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -859,8 +914,9 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                     value: gst.value,
                     label: 'GST %',
                     items: _gstOptions
-                        .map((g) => DropdownMenuItem(
-                            value: g, child: Text('$g%')))
+                        .map(
+                          (g) => DropdownMenuItem(value: g, child: Text('$g%')),
+                        )
                         .toList(),
                     onChanged: (v) {
                       if (v != null) gst.value = v;
@@ -892,14 +948,10 @@ class _VegToggle extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isVeg
-            ? const Color(0xFFF0FDF4)
-            : const Color(0xFFFFF5F5),
+        color: isVeg ? const Color(0xFFF0FDF4) : const Color(0xFFFFF5F5),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isVeg
-              ? const Color(0xFFBBF7D0)
-              : const Color(0xFFFECACA),
+          color: isVeg ? const Color(0xFFBBF7D0) : const Color(0xFFFECACA),
           width: 1.2,
         ),
         boxShadow: _T.fieldShadow,
@@ -912,9 +964,7 @@ class _VegToggle extends StatelessWidget {
               key: ValueKey(isVeg),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isVeg
-                    ? const Color(0xFFDCFCE7)
-                    : _T.redLight,
+                color: isVeg ? const Color(0xFFDCFCE7) : _T.redLight,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -1015,7 +1065,7 @@ class _UploadPlaceholderState extends State<_UploadPlaceholder> {
                             ? [_T.g400, _T.g600]
                             : [
                                 const Color(0xFFBBF7D0),
-                                const Color(0xFF6EE7B7)
+                                const Color(0xFF6EE7B7),
                               ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -1027,7 +1077,7 @@ class _UploadPlaceholderState extends State<_UploadPlaceholder> {
                                 color: _T.g500.withValues(alpha: 0.3),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
-                              )
+                              ),
                             ]
                           : [],
                     ),
@@ -1094,11 +1144,7 @@ class _ImagePreviewWidget extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            bottom: 10,
-            right: 10,
-            child: _EditChip(onTap: onEdit),
-          ),
+          Positioned(bottom: 10, right: 10, child: _EditChip(onTap: onEdit)),
         ],
       ),
     );
@@ -1118,25 +1164,25 @@ class _UrlImageWidget extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(url, fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>_UploadPlaceholder(onTap: null as dynamic)),
+          Image.network(
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                _UploadPlaceholder(onTap: null as dynamic),
+          ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.4)
+                  Colors.black.withValues(alpha: 0.4),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
-          Positioned(
-            bottom: 10,
-            right: 10,
-            child: _EditChip(onTap: onEdit),
-          ),
+          Positioned(bottom: 10, right: 10, child: _EditChip(onTap: onEdit)),
         ],
       ),
     );
@@ -1161,7 +1207,7 @@ class _EditChip extends StatelessWidget {
               color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 8,
               offset: const Offset(0, 2),
-            )
+            ),
           ],
         ),
         child: const Row(
@@ -1172,9 +1218,10 @@ class _EditChip extends StatelessWidget {
             Text(
               'Change',
               style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _T.title),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _T.title,
+              ),
             ),
           ],
         ),
@@ -1210,7 +1257,9 @@ class _CloseButtonState extends State<_CloseButton> {
                 : Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15), width: 1),
+              color: Colors.white.withValues(alpha: 0.15),
+              width: 1,
+            ),
           ),
           child: const Icon(Icons.close_rounded, size: 18, color: Colors.white),
         ),
@@ -1244,7 +1293,9 @@ class _CancelButtonState extends State<_CancelButton> {
             color: _hover ? const Color(0xFFF1F5F9) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: _hover ? _T.border : Colors.transparent, width: 1),
+              color: _hover ? _T.border : Colors.transparent,
+              width: 1,
+            ),
           ),
           child: const Text(
             'Cancel',
@@ -1294,14 +1345,14 @@ class _SaveButtonState extends State<_SaveButton> {
             borderRadius: BorderRadius.circular(13),
             boxShadow: widget.onTap != null
                 ? _hover
-                    ? [
-                        BoxShadow(
-                          color: _T.g500.withValues(alpha: 0.45),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        )
-                      ]
-                    : _T.btnShadow
+                      ? [
+                          BoxShadow(
+                            color: _T.g500.withValues(alpha: 0.45),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ]
+                      : _T.btnShadow
                 : [],
           ),
           child: widget.isLoading
@@ -1316,8 +1367,11 @@ class _SaveButtonState extends State<_SaveButton> {
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_rounded,
-                        size: 18, color: Colors.white),
+                    const Icon(
+                      Icons.check_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: 8),
                     const Text(
                       'Save Item',

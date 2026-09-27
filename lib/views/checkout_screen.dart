@@ -23,42 +23,86 @@ class CheckoutScreen extends StatelessWidget {
     final gst = cartController.gstAmount;
     final total = cartController.total;
 
-    pdf.addPage(pw.Page(
-      pageFormat: PdfPageFormat.roll57,
-      build: (ctx) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Center(
-            child: pw.Text('Bill Receipt',
-                style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-          ),
-          pw.Divider(),
-          ...lines.map((l) => pw.Row(
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll57,
+        build: (ctx) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Center(
+              child: pw.Text(
+                'Bill Receipt',
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.Divider(),
+            ...lines.map(
+              (l) => pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('${l.item.name} x${l.qty.value}', style: const pw.TextStyle(fontSize: 10)),
-                  pw.Text('₹${l.lineTotal.toStringAsFixed(0)}', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text(
+                    '${l.item.name} x${l.qty.value}',
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
+                  pw.Text(
+                    '₹${l.lineTotal.toStringAsFixed(0)}',
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
                 ],
-              )),
-          pw.Divider(),
-          pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-            pw.Text('Subtotal', style: pw.TextStyle(fontSize: 10)),
-            pw.Text('₹${subtotal.toStringAsFixed(0)}', style: const pw.TextStyle(fontSize: 10)),
-          ]),
-          pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-            pw.Text('GST (5%)', style: pw.TextStyle(fontSize: 10)),
-            pw.Text('₹${gst.toStringAsFixed(0)}', style: const pw.TextStyle(fontSize: 10)),
-          ]),
-          pw.Divider(),
-          pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-            pw.Text('TOTAL', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-            pw.Text('₹${total.toStringAsFixed(0)}', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-          ]),
-          pw.SizedBox(height: 8),
-          pw.Center(child: pw.Text('Thank you!', style: pw.TextStyle(fontSize: 10))),
-        ],
+              ),
+            ),
+            pw.Divider(),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Subtotal', style: pw.TextStyle(fontSize: 10)),
+                pw.Text(
+                  '₹${subtotal.toStringAsFixed(0)}',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('GST (5%)', style: pw.TextStyle(fontSize: 10)),
+                pw.Text(
+                  '₹${gst.toStringAsFixed(0)}',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
+            pw.Divider(),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'TOTAL',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.Text(
+                  '₹${total.toStringAsFixed(0)}',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Center(
+              child: pw.Text('Thank you!', style: pw.TextStyle(fontSize: 10)),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
 
     await Printing.layoutPdf(
       onLayout: (_) async => pdf.save(),
@@ -73,7 +117,9 @@ class CheckoutScreen extends StatelessWidget {
     final granted = await service.requestPermissions();
     if (!granted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bluetooth permissions are required to print.')),
+        const SnackBar(
+          content: Text('Bluetooth permissions are required to print.'),
+        ),
       );
       return;
     }
@@ -89,7 +135,11 @@ class CheckoutScreen extends StatelessWidget {
     final connected = await service.connect(mac);
     if (!connected) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not connect to printer. Make sure it is paired and on.')),
+        const SnackBar(
+          content: Text(
+            'Could not connect to printer. Make sure it is paired and on.',
+          ),
+        ),
       );
       return;
     }
@@ -98,12 +148,14 @@ class CheckoutScreen extends StatelessWidget {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       createdAt: DateTime.now(),
       lines: cartController.cartLines
-          .map((l) => PosOrderLine(
-                itemId: l.item.id,
-                itemName: l.item.name,
-                qty: l.qty.value,
-                unitPrice: l.item.price,
-              ))
+          .map(
+            (l) => PosOrderLine(
+              itemId: l.item.id,
+              itemName: l.item.name,
+              qty: l.qty.value,
+              unitPrice: l.item.price,
+            ),
+          )
           .toList(),
       subtotal: cartController.subtotal,
       gstAmount: cartController.gstAmount,
@@ -115,15 +167,24 @@ class CheckoutScreen extends StatelessWidget {
 
     final success = await service.printBill(order, 'My Shop');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'Bill printed!' : 'Print failed. Try again.')),
+      SnackBar(
+        content: Text(success ? 'Bill printed!' : 'Print failed. Try again.'),
+      ),
     );
   }
 
-  Future<String?> _showPrinterPicker(BuildContext context, BluetoothPrintService service) async {
+  Future<String?> _showPrinterPicker(
+    BuildContext context,
+    BluetoothPrintService service,
+  ) async {
     final devices = await service.getPairedDevices();
     if (devices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No paired Bluetooth devices found. Pair your printer in Settings first.')),
+        const SnackBar(
+          content: Text(
+            'Please turn on Bluetooth and pair your Bluetooth printer first.',
+          ),
+        ),
       );
       return null;
     }
@@ -133,11 +194,15 @@ class CheckoutScreen extends StatelessWidget {
       builder: (ctx) => SimpleDialog(
         title: const Text('Select Printer'),
         children: devices
-            .map((d) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(ctx, d.macAdress),
-                  child: Text('${d.name}\n${d.macAdress}',
-                      style: const TextStyle(fontSize: 13)),
-                ))
+            .map(
+              (d) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, d.macAdress),
+                child: Text(
+                  '${d.name}\n${d.macAdress}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            )
             .toList(),
       ),
     );

@@ -6,6 +6,7 @@ import '../models/report_data.dart';
 import '../models/pos_order.dart';
 import '../theme/app_colors.dart';
 import '../utils/report_pdf_generator.dart';
+import '../utils/responsive_helper.dart';
 import '../widgets/reports/summary_card.dart';
 import '../widgets/reports/sales_trend_chart.dart';
 import '../widgets/reports/payment_breakdown_chart.dart';
@@ -17,6 +18,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ReportController());
+    final isMobile = ResponsiveHelper.isMobile(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -29,19 +31,19 @@ class ReportsScreen extends StatelessWidget {
 
         return CustomScrollView(
           slivers: [
-            _buildAppBar(controller),
+            _buildAppBar(controller, isMobile),
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isMobile ? 16 : 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildFilterSection(controller, context),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   _buildSummaryCards(controller),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   _buildChartsSection(controller),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   _buildOrdersTable(controller),
-                  const SizedBox(height: 40),
+                  SizedBox(height: isMobile ? 24 : 40),
                 ]),
               ),
             ),
@@ -51,16 +53,16 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(ReportController controller) {
+  Widget _buildAppBar(ReportController controller, bool isMobile) {
     return SliverAppBar(
       floating: true,
       backgroundColor: AppColors.surface,
       elevation: 0,
-      title: const Text(
+      title: Text(
         'Reports & Analytics',
         style: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 24,
+          fontSize: isMobile ? 20 : 24,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -69,66 +71,75 @@ class ReportsScreen extends StatelessWidget {
           icon: const Icon(Icons.refresh, color: AppColors.primary),
           onPressed: controller.refresh,
         ),
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: ElevatedButton.icon(
-            onPressed: () => _exportPdf(controller),
-            icon: const Icon(Icons.download, size: 18),
-            label: const Text('Export PDF'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
+        if (!isMobile)
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: ElevatedButton.icon(
+              onPressed: () => _exportPdf(controller),
+              icon: const Icon(Icons.download, size: 18),
+              label: const Text('Export PDF'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
-        ),
+        if (isMobile)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: const Icon(Icons.download, color: AppColors.primary),
+              onPressed: () => _exportPdf(controller),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildFilterSection(ReportController controller, BuildContext context) {
+  Widget _buildFilterSection(
+    ReportController controller,
+    BuildContext context,
+  ) {
+    final isMobile = ResponsiveHelper.isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
         boxShadow: AppShadows.small,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Filters',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: isMobile ? 8 : 12,
+            runSpacing: isMobile ? 8 : 12,
             children: [
               _buildDateRangeChip(
                 controller,
                 'Last 7 Days',
                 DateRangeType.week,
               ),
-              _buildDateRangeChip(
-                controller,
-                'Month',
-                DateRangeType.month,
-              ),
-              _buildDateRangeChip(
-                controller,
-                'Year',
-                DateRangeType.year,
-              ),
+              _buildDateRangeChip(controller, 'Month', DateRangeType.month),
+              _buildDateRangeChip(controller, 'Year', DateRangeType.year),
             ],
           ),
         ],
@@ -154,7 +165,7 @@ class ReportsScreen extends StatelessWidget {
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: isSelected ? AppColors.primary : AppColors.border,
           ),
@@ -166,11 +177,10 @@ class ReportsScreen extends StatelessWidget {
   Widget _buildSummaryCards(ReportController controller) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 1200
-            ? 4
-            : constraints.maxWidth > 800
-                ? 2
-                : 1;
+        final crossAxisCount = ResponsiveHelper.getReportsGridCrossAxisCount(
+          context,
+        );
+        final isMobile = ResponsiveHelper.isMobile(context);
 
         return Obx(() {
           final summary = controller.summary.value;
@@ -178,9 +188,9 @@ class ReportsScreen extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 1.8,
+            mainAxisSpacing: isMobile ? 12 : 16,
+            crossAxisSpacing: isMobile ? 12 : 16,
+            childAspectRatio: isMobile ? 1.3 : 1.8,
             children: [
               SummaryCard(
                 title: 'Total Sales',
@@ -220,7 +230,7 @@ class ReportsScreen extends StatelessWidget {
   Widget _buildChartsSection(ReportController controller) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 800;
+        final isMobile = ResponsiveHelper.isMobile(context);
 
         return Obx(() {
           if (isMobile) {
@@ -229,19 +239,21 @@ class ReportsScreen extends StatelessWidget {
                 _buildChartCard(
                   'Sales Trend',
                   SalesTrendChart(data: controller.salesTrend),
-                  height: 300,
+                  height: 250,
                 ),
                 const SizedBox(height: 16),
                 _buildChartCard(
                   'Payment Breakdown',
-                  PaymentBreakdownChart(data: controller.paymentBreakdown.value),
-                  height: 300,
+                  PaymentBreakdownChart(
+                    data: controller.paymentBreakdown.value,
+                  ),
+                  height: 250,
                 ),
                 const SizedBox(height: 16),
                 _buildChartCard(
                   'Top Items',
                   TopItemsChart(data: controller.topItems),
-                  height: 300,
+                  height: 250,
                 ),
               ],
             );
@@ -261,7 +273,9 @@ class ReportsScreen extends StatelessWidget {
                   Expanded(
                     child: _buildChartCard(
                       'Payment Breakdown',
-                      PaymentBreakdownChart(data: controller.paymentBreakdown.value),
+                      PaymentBreakdownChart(
+                        data: controller.paymentBreakdown.value,
+                      ),
                       height: 350,
                     ),
                   ),
@@ -283,44 +297,55 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildChartCard(String title, Widget chart, {double height = 300}) {
-    return Container(
-      height: height,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.medium,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = ResponsiveHelper.isMobile(context);
+
+        return Container(
+          height: height,
+          padding: EdgeInsets.all(isMobile ? 16 : 20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+            boxShadow: AppShadows.medium,
           ),
-          const SizedBox(height: 16),
-          Expanded(child: chart),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: isMobile ? 14 : 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: isMobile ? 12 : 16),
+              Expanded(child: chart),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildOrdersTable(ReportController controller) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isMobile = ResponsiveHelper.isMobile(context);
+
         return Obx(() {
           final allOrders = controller.orders;
           final currentPage = controller.currentPage.value;
           final itemsPerPage = controller.itemsPerPage;
           final totalPages = (allOrders.length / itemsPerPage).ceil();
-          
+
           // Calculate pagination
           final startIndex = (currentPage - 1) * itemsPerPage;
-          final endIndex = (startIndex + itemsPerPage).clamp(0, allOrders.length);
+          final endIndex = (startIndex + itemsPerPage).clamp(
+            0,
+            allOrders.length,
+          );
           final paginatedOrders = allOrders.sublist(
             startIndex.clamp(0, allOrders.length),
             endIndex,
@@ -328,10 +353,10 @@ class ReportsScreen extends StatelessWidget {
 
           if (allOrders.isEmpty) {
             return Container(
-              padding: const EdgeInsets.all(40),
+              padding: EdgeInsets.all(isMobile ? 32 : 40),
               decoration: BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
                 boxShadow: AppShadows.small,
               ),
               child: const Center(
@@ -346,32 +371,33 @@ class ReportsScreen extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
               boxShadow: AppShadows.small,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(isMobile ? 16 : 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Recent Orders',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: isMobile ? 14 : 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      Text(
-                        'Showing ${startIndex + 1}-${endIndex} of ${allOrders.length}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                      if (!isMobile)
+                        Text(
+                          'Showing ${startIndex + 1}-$endIndex of ${allOrders.length}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -381,11 +407,13 @@ class ReportsScreen extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        minWidth: constraints.maxWidth - 40,
+                        minWidth: constraints.maxWidth - (isMobile ? 32 : 40),
                       ),
                       child: DataTable(
-                        columnSpacing: 24,
-                        headingRowColor: WidgetStateProperty.all(AppColors.surfaceVariant),
+                        columnSpacing: isMobile ? 16 : 24,
+                        headingRowColor: WidgetStateProperty.all(
+                          AppColors.surfaceVariant,
+                        ),
                         columns: const [
                           DataColumn(
                             label: Expanded(
@@ -448,31 +476,55 @@ class ReportsScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              DataCell(Text(DateFormat('dd/MM/yy HH:mm').format(order.createdAt))),
-                              DataCell(Text('₹${order.total.toStringAsFixed(2)}')),
+                              DataCell(
+                                Text(
+                                  DateFormat(
+                                    'dd/MM/yy HH:mm',
+                                  ).format(order.createdAt),
+                                ),
+                              ),
+                              DataCell(
+                                Text('₹${order.total.toStringAsFixed(2)}'),
+                              ),
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: order.paymentMode == PosPaymentMode.cash
+                                    color:
+                                        order.paymentMode == PosPaymentMode.cash
                                         ? AppColors.successBg
                                         : AppColors.infoBg,
-                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     order.paymentMode.name.toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: order.paymentMode == PosPaymentMode.cash
+                                      color:
+                                          order.paymentMode ==
+                                              PosPaymentMode.cash
                                           ? AppColors.success
                                           : AppColors.info,
                                     ),
                                   ),
                                 ),
                               ),
-                              DataCell(Text(order.customerName.isEmpty ? '-' : order.customerName)),
-                              DataCell(Text(order.tableNo.isEmpty ? '-' : order.tableNo)),
+                              DataCell(
+                                Text(
+                                  order.customerName.isEmpty
+                                      ? '-'
+                                      : order.customerName,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  order.tableNo.isEmpty ? '-' : order.tableNo,
+                                ),
+                              ),
                             ],
                           );
                         }).toList(),
@@ -480,7 +532,8 @@ class ReportsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (totalPages > 1) _buildPagination(controller, totalPages),
+                if (totalPages > 1)
+                  _buildPagination(controller, totalPages, isMobile),
               ],
             ),
           );
@@ -489,12 +542,16 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPagination(ReportController controller, int totalPages) {
+  Widget _buildPagination(
+    ReportController controller,
+    int totalPages,
+    bool isMobile,
+  ) {
     return Obx(() {
       final currentPage = controller.currentPage.value;
-      
+
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -506,19 +563,19 @@ class ReportsScreen extends StatelessWidget {
               icon: const Icon(Icons.chevron_left),
               style: IconButton.styleFrom(
                 backgroundColor: currentPage > 1
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
                 foregroundColor: currentPage > 1
                     ? AppColors.primary
                     : Colors.grey,
               ),
             ),
-            const SizedBox(width: 8),
-            
+            SizedBox(width: isMobile ? 4 : 8),
+
             // Page numbers
-            ..._buildPageNumbers(currentPage, totalPages, controller),
-            
-            const SizedBox(width: 8),
+            ..._buildPageNumbers(currentPage, totalPages, controller, isMobile),
+
+            SizedBox(width: isMobile ? 4 : 8),
             // Next button
             IconButton(
               onPressed: currentPage < totalPages
@@ -527,8 +584,8 @@ class ReportsScreen extends StatelessWidget {
               icon: const Icon(Icons.chevron_right),
               style: IconButton.styleFrom(
                 backgroundColor: currentPage < totalPages
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
                 foregroundColor: currentPage < totalPages
                     ? AppColors.primary
                     : Colors.grey,
@@ -540,28 +597,33 @@ class ReportsScreen extends StatelessWidget {
     });
   }
 
-  List<Widget> _buildPageNumbers(int currentPage, int totalPages, ReportController controller) {
+  List<Widget> _buildPageNumbers(
+    int currentPage,
+    int totalPages,
+    ReportController controller,
+    bool isMobile,
+  ) {
     List<Widget> pages = [];
-    
+
     // Show max 5 page numbers
     int start = (currentPage - 2).clamp(1, totalPages);
     int end = (start + 4).clamp(1, totalPages);
-    
+
     // Adjust start if we're near the end
     if (end == totalPages && totalPages > 5) {
       start = (totalPages - 4).clamp(1, totalPages);
     }
-    
+
     for (int i = start; i <= end; i++) {
       pages.add(
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 2 : 4),
           child: InkWell(
             onTap: () => controller.setPage(i),
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              width: 40,
-              height: 40,
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
               decoration: BoxDecoration(
                 color: i == currentPage
                     ? AppColors.primary
@@ -583,6 +645,7 @@ class ReportsScreen extends StatelessWidget {
                   fontWeight: i == currentPage
                       ? FontWeight.bold
                       : FontWeight.normal,
+                  fontSize: isMobile ? 12 : 14,
                 ),
               ),
             ),
@@ -590,7 +653,7 @@ class ReportsScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     return pages;
   }
 

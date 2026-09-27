@@ -43,8 +43,11 @@ class _CartWidgetState extends State<CartWidget> {
     return Uri.parse('http://localhost:$port$path');
   }
 
-  void _showSnackBar(BuildContext context,
-      {required String message, bool isError = false}) {
+  void _showSnackBar(
+    BuildContext context, {
+    required String message,
+    bool isError = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -107,12 +110,14 @@ class _CartWidgetState extends State<CartWidget> {
         id: 'ORD-${now.millisecondsSinceEpoch}',
         createdAt: now,
         lines: cart.cartLines
-            .map((l) => PosOrderLine(
-                  itemId: l.item.id,
-                  itemName: l.item.name,
-                  qty: l.qty.value,
-                  unitPrice: l.item.price,
-                ))
+            .map(
+              (l) => PosOrderLine(
+                itemId: l.item.id,
+                itemName: l.item.name,
+                qty: l.qty.value,
+                unitPrice: l.item.price,
+              ),
+            )
             .toList(),
         subtotal: cart.subtotal,
         gstAmount: cart.gstAmount,
@@ -143,7 +148,11 @@ class _CartWidgetState extends State<CartWidget> {
     final granted = await service.requestPermissions();
     if (!granted) {
       if (!mounted) return;
-      _showSnackBar(context, message: 'Bluetooth permissions required.', isError: true);
+      _showSnackBar(
+        context,
+        message: 'Bluetooth permissions required.',
+        isError: true,
+      );
       return;
     }
 
@@ -155,7 +164,8 @@ class _CartWidgetState extends State<CartWidget> {
         if (!mounted) return;
         _showSnackBar(
           context,
-          message: 'No paired printer found. Go to Drawer → Printer Setup to pair one.',
+          message:
+              'Please turn on Bluetooth and pair your Bluetooth printer first.',
           isError: true,
         );
         return;
@@ -166,11 +176,15 @@ class _CartWidgetState extends State<CartWidget> {
         builder: (ctx) => SimpleDialog(
           title: const Text('Select Printer'),
           children: devices
-              .map((d) => SimpleDialogOption(
-                    onPressed: () => Navigator.pop(ctx, d.macAdress),
-                    child: Text('${d.name}  ${d.macAdress}',
-                        style: const TextStyle(fontSize: 13)),
-                  ))
+              .map(
+                (d) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(ctx, d.macAdress),
+                  child: Text(
+                    '${d.name}  ${d.macAdress}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              )
               .toList(),
         ),
       );
@@ -196,7 +210,11 @@ class _CartWidgetState extends State<CartWidget> {
       _showSnackBar(context, message: 'Printed successfully');
       await _saveOrder(order);
     } else {
-      _showSnackBar(context, message: 'Print failed. Try again.', isError: true);
+      _showSnackBar(
+        context,
+        message: 'Print failed. Try again.',
+        isError: true,
+      );
     }
   }
 
@@ -299,13 +317,15 @@ class _CartWidgetState extends State<CartWidget> {
                     ),
                   ),
                 ),
-                Obx(() => Text(
-                      '${cart.totalItems} items',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF64748B),
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    '${cart.totalItems} items',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -373,10 +393,7 @@ class _CartWidgetState extends State<CartWidget> {
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final line = cart.cartLines[index];
-                    return CartItemWidget(
-                      line: line,
-                      cartController: cart,
-                    );
+                    return CartItemWidget(line: line, cartController: cart);
                   },
                 );
               }),

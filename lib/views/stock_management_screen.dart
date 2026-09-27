@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/stock_controller.dart';
 import '../controllers/menu_controller.dart' as pos;
 import '../models/menu_item.dart';
+import '../utils/responsive_helper.dart';
 
 class StockManagementScreen extends StatelessWidget {
   const StockManagementScreen({super.key});
@@ -17,7 +18,10 @@ class StockManagementScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        title: const Text('Stock Management', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Stock Management',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -25,12 +29,20 @@ class StockManagementScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF16A34A),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               onPressed: () => _showAddStockDialog(context, controller),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Stock', style: TextStyle(fontWeight: FontWeight.w700)),
+              label: const Text(
+                'Add Stock',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -45,9 +57,16 @@ class StockManagementScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[300]),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
                 const SizedBox(height: 16),
-                Text('No items found', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                Text(
+                  'No items found',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                ),
               ],
             ),
           );
@@ -57,7 +76,9 @@ class StockManagementScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
           child: Card(
             elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               child: Column(
@@ -65,18 +86,24 @@ class StockManagementScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.inventory_2, color: Color(0xFF16A34A), size: 24),
+                      const Icon(
+                        Icons.inventory_2,
+                        color: Color(0xFF16A34A),
+                        size: 24,
+                      ),
                       const SizedBox(width: 12),
                       const Text(
                         'Stock Inventory',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                      const Spacer(),
-                      _buildLegend(),
                     ],
                   ),
+                  _buildLegend(),
                   const SizedBox(height: 20),
-                  _buildDataTable(controller),
+                  _buildDataTable(context, controller),
                 ],
               ),
             ),
@@ -107,15 +134,29 @@ class StockManagementScreen extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
 
-  Widget _buildDataTable(StockController controller) {
+  Widget _buildDataTable(BuildContext context, StockController controller) {
     return Obx(() {
-      return SizedBox(
-        width: double.infinity,
+      return _buildTableLayout(context, controller);
+    });
+  }
+
+  Widget _buildTableLayout(BuildContext context, StockController controller) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: ResponsiveHelper.isDesktop(context)
+              ? double.infinity
+              : 800, // Sensible minimum width for mobile table
+        ),
         child: DataTable(
           headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
           headingRowHeight: 56,
@@ -123,19 +164,58 @@ class StockManagementScreen extends StatelessWidget {
           dataRowMaxHeight: 60,
           columnSpacing: 24,
           horizontalMargin: 8,
-        columns: const [
-          DataColumn(label: Text('Item Code', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Item Name', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Category', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Stock Qty', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)), numeric: true),
-          DataColumn(label: Text('Threshold', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)), numeric: true),
-          DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-          DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
-        ],
-        rows: controller.items.map((item) => _buildDataRow(item, controller)).toList(),
+          columns: const [
+            DataColumn(
+              label: Text(
+                'Item Code',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Item Name',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Category',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Stock Qty',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(
+                'Threshold',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(
+                'Status',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Actions',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ),
+          ],
+          rows: controller.items
+              .map((item) => _buildDataRow(item, controller))
+              .toList(),
         ),
-      );
-    });
+      ),
+    );
   }
 
   DataRow _buildDataRow(MenuItem item, StockController controller) {
@@ -145,7 +225,12 @@ class StockManagementScreen extends StatelessWidget {
 
     return DataRow(
       cells: [
-        DataCell(Text(item.itemCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+        DataCell(
+          Text(
+            item.itemCode,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
+        ),
         DataCell(
           Row(
             children: [
@@ -178,7 +263,10 @@ class StockManagementScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   item.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -196,14 +284,19 @@ class StockManagementScreen extends StatelessWidget {
             ),
           ),
         ),
-        DataCell(Text('${item.lowStockThreshold}', style: const TextStyle(fontSize: 13))),
+        DataCell(
+          Text(
+            '${item.lowStockThreshold}',
+            style: const TextStyle(fontSize: 13),
+          ),
+        ),
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusColor.withOpacity(0.3)),
+              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
             child: Text(
               statusText,
@@ -220,17 +313,29 @@ class StockManagementScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: Color(0xFF16A34A), size: 20),
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Color(0xFF16A34A),
+                  size: 20,
+                ),
                 tooltip: 'Add Stock',
                 onPressed: () => _showQuickAddDialog(item, controller),
               ),
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Color(0xFF2563EB), size: 20),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
                 tooltip: 'Edit Stock',
                 onPressed: () => _showEditStockDialog(item, controller),
               ),
               IconButton(
-                icon: const Icon(Icons.visibility_outlined, color: Color(0xFF64748B), size: 20),
+                icon: const Icon(
+                  Icons.visibility_outlined,
+                  color: Color(0xFF64748B),
+                  size: 20,
+                ),
                 tooltip: 'View Details',
                 onPressed: () => _showViewDialog(item),
               ),
@@ -287,28 +392,41 @@ class StockManagementScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16A34A).withOpacity(0.1),
+                      color: const Color(0xFF16A34A).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.add_circle, color: Color(0xFF16A34A), size: 24),
+                    child: const Icon(
+                      Icons.add_circle,
+                      color: Color(0xFF16A34A),
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Add Stock', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Add Stock',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               Obx(() {
                 return DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Select Item *',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     filled: true,
                     fillColor: Colors.grey[50],
                   ),
                   items: controller.items.map((item) {
                     return DropdownMenuItem(
                       value: item.id,
-                      child: Text('${item.name} (${item.itemCode})'),
+                      child: Text(
+                        '${item.name} (${item.itemCode})',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) => selectedItemId = value,
@@ -321,7 +439,9 @@ class StockManagementScreen extends StatelessWidget {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: 'Quantity to Add *',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                   prefixIcon: const Icon(Icons.add),
@@ -334,7 +454,9 @@ class StockManagementScreen extends StatelessWidget {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: 'Low Stock Threshold (Optional)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                   prefixIcon: const Icon(Icons.warning_amber),
@@ -346,29 +468,47 @@ class StockManagementScreen extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF16A34A),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: () async {
                       if (selectedItemId == null) {
-                        Get.snackbar('Error', 'Please select an item', snackPosition: SnackPosition.BOTTOM);
-                        return;
-                      }
-                      
-                      final qty = int.tryParse(qtyController.text);
-                      if (qty == null || qty <= 0) {
-                        Get.snackbar('Error', 'Please enter valid quantity', snackPosition: SnackPosition.BOTTOM);
+                        Get.snackbar(
+                          'Error',
+                          'Please select an item',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
                         return;
                       }
 
-                      final threshold = thresholdController.text.isEmpty ? null : int.tryParse(thresholdController.text);
+                      final qty = int.tryParse(qtyController.text);
+                      if (qty == null || qty <= 0) {
+                        Get.snackbar(
+                          'Error',
+                          'Please enter valid quantity',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                        return;
+                      }
+
+                      final threshold = thresholdController.text.isEmpty
+                          ? null
+                          : int.tryParse(thresholdController.text);
 
                       await controller.updateStock(
                         itemId: selectedItemId!,
@@ -376,7 +516,10 @@ class StockManagementScreen extends StatelessWidget {
                         lowStockThreshold: threshold,
                       );
                     },
-                    child: const Text('Add Stock', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text(
+                      'Add Stock',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ],
               ),
@@ -405,18 +548,34 @@ class StockManagementScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16A34A).withOpacity(0.1),
+                      color: const Color(0xFF16A34A).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.add_circle, color: Color(0xFF16A34A), size: 24),
+                    child: const Icon(
+                      Icons.add_circle,
+                      color: Color(0xFF16A34A),
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Quick Add Stock', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                        Text(item.name, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                        const Text(
+                          'Quick Add Stock',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -430,7 +589,9 @@ class StockManagementScreen extends StatelessWidget {
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'Quantity to Add *',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                   prefixIcon: const Icon(Icons.add),
@@ -442,20 +603,32 @@ class StockManagementScreen extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF16A34A),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: () async {
                       final qty = int.tryParse(qtyController.text);
                       if (qty == null || qty <= 0) {
-                        Get.snackbar('Error', 'Please enter valid quantity', snackPosition: SnackPosition.BOTTOM);
+                        Get.snackbar(
+                          'Error',
+                          'Please enter valid quantity',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
                         return;
                       }
 
@@ -464,7 +637,10 @@ class StockManagementScreen extends StatelessWidget {
                         addedQuantity: qty,
                       );
                     },
-                    child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text(
+                      'Add',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ],
               ),
@@ -478,22 +654,28 @@ class StockManagementScreen extends StatelessWidget {
   void _showEditStockDialog(MenuItem item, StockController controller) {
     final itemCodeController = TextEditingController(text: item.itemCode);
     final itemNameController = TextEditingController(text: item.name);
-    final qtyController = TextEditingController(text: item.stockQuantity.toString());
-    final thresholdController = TextEditingController(text: item.lowStockThreshold.toString());
-    
+    final qtyController = TextEditingController(
+      text: item.stockQuantity.toString(),
+    );
+    final thresholdController = TextEditingController(
+      text: item.lowStockThreshold.toString(),
+    );
+
     // Get categories
     final categoryController = Get.find<pos.MenuController>();
-    
+
     // Get available categories (exclude 'All')
     final availableCategories = categoryController.categories
         .where((cat) => cat != 'All')
         .toList();
-    
+
     // Validate and set selected category
     String selectedCategory = item.category;
     if (!availableCategories.contains(selectedCategory)) {
       // If current category doesn't exist, use first available or empty
-      selectedCategory = availableCategories.isNotEmpty ? availableCategories.first : '';
+      selectedCategory = availableCategories.isNotEmpty
+          ? availableCategories.first
+          : '';
     }
 
     Get.dialog(
@@ -514,16 +696,25 @@ class StockManagementScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB).withOpacity(0.1),
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.edit, color: Color(0xFF2563EB), size: 24),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Color(0xFF2563EB),
+                            size: 24,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Text(
                             'Edit Stock Item',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ],
@@ -533,7 +724,9 @@ class StockManagementScreen extends StatelessWidget {
                       controller: itemCodeController,
                       decoration: InputDecoration(
                         labelText: 'Item Code *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.qr_code),
@@ -544,7 +737,9 @@ class StockManagementScreen extends StatelessWidget {
                       controller: itemNameController,
                       decoration: InputDecoration(
                         labelText: 'Item Name *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.restaurant_menu),
@@ -553,10 +748,13 @@ class StockManagementScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     if (availableCategories.isNotEmpty)
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: selectedCategory,
                         decoration: InputDecoration(
                           labelText: 'Category *',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[50],
                           prefixIcon: const Icon(Icons.category),
@@ -564,7 +762,7 @@ class StockManagementScreen extends StatelessWidget {
                         items: availableCategories.map((cat) {
                           return DropdownMenuItem(
                             value: cat,
-                            child: Text(cat),
+                            child: Text(cat, overflow: TextOverflow.ellipsis),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -575,14 +773,19 @@ class StockManagementScreen extends StatelessWidget {
                       )
                     else
                       TextField(
-                        controller: TextEditingController(text: selectedCategory),
+                        controller: TextEditingController(
+                          text: selectedCategory,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Category *',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[50],
                           prefixIcon: const Icon(Icons.category),
-                          helperText: 'No categories available. Please add categories first.',
+                          helperText:
+                              'No categories available. Please add categories first.',
                           helperStyle: const TextStyle(color: Colors.orange),
                         ),
                         onChanged: (value) => selectedCategory = value,
@@ -594,7 +797,9 @@ class StockManagementScreen extends StatelessWidget {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: 'Stock Quantity *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.inventory),
@@ -607,7 +812,9 @@ class StockManagementScreen extends StatelessWidget {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: 'Low Stock Threshold *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         prefixIcon: const Icon(Icons.warning_amber),
@@ -619,44 +826,74 @@ class StockManagementScreen extends StatelessWidget {
                       children: [
                         TextButton(
                           onPressed: () => Get.back(),
-                          child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
                           ),
                           onPressed: () async {
                             final itemCode = itemCodeController.text.trim();
                             final itemName = itemNameController.text.trim();
                             final qty = int.tryParse(qtyController.text);
-                            final threshold = int.tryParse(thresholdController.text);
+                            final threshold = int.tryParse(
+                              thresholdController.text,
+                            );
 
                             if (itemCode.isEmpty) {
-                              Get.snackbar('Error', 'Please enter item code', snackPosition: SnackPosition.BOTTOM);
+                              Get.snackbar(
+                                'Error',
+                                'Please enter item code',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
                               return;
                             }
 
                             if (itemName.isEmpty) {
-                              Get.snackbar('Error', 'Please enter item name', snackPosition: SnackPosition.BOTTOM);
+                              Get.snackbar(
+                                'Error',
+                                'Please enter item name',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
                               return;
                             }
 
                             if (selectedCategory.isEmpty) {
-                              Get.snackbar('Error', 'Please select or enter a category', snackPosition: SnackPosition.BOTTOM);
+                              Get.snackbar(
+                                'Error',
+                                'Please select or enter a category',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
                               return;
                             }
 
                             if (qty == null || qty < 0) {
-                              Get.snackbar('Error', 'Please enter valid stock quantity', snackPosition: SnackPosition.BOTTOM);
+                              Get.snackbar(
+                                'Error',
+                                'Please enter valid stock quantity',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
                               return;
                             }
 
                             if (threshold == null || threshold < 0) {
-                              Get.snackbar('Error', 'Please enter valid threshold', snackPosition: SnackPosition.BOTTOM);
+                              Get.snackbar(
+                                'Error',
+                                'Please enter valid threshold',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
                               return;
                             }
 
@@ -669,7 +906,10 @@ class StockManagementScreen extends StatelessWidget {
                               lowStockThreshold: threshold,
                             );
                           },
-                          child: const Text('Update Item', style: TextStyle(fontWeight: FontWeight.w700)),
+                          child: const Text(
+                            'Update Item',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ],
                     ),
@@ -703,13 +943,20 @@ class StockManagementScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF64748B).withOpacity(0.1),
+                      color: const Color(0xFF64748B).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.info_outline, color: Color(0xFF64748B), size: 24),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF64748B),
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Stock Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Stock Details',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -718,22 +965,40 @@ class StockManagementScreen extends StatelessWidget {
               _buildDetailRow('Category', item.category),
               _buildDetailRow('Price', '₹${item.price.toStringAsFixed(2)}'),
               _buildDetailRow('Stock Quantity', '${item.stockQuantity}'),
-              _buildDetailRow('Low Stock Threshold', '${item.lowStockThreshold}'),
-              _buildDetailRow('Type', item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'),
+              _buildDetailRow(
+                'Low Stock Threshold',
+                '${item.lowStockThreshold}',
+              ),
+              _buildDetailRow(
+                'Type',
+                item.isVeg ? 'Vegetarian' : 'Non-Vegetarian',
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Text('Status: ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  const Text(
+                    'Status: ',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       statusText,
-                      style: TextStyle(color: statusColor, fontWeight: FontWeight.w700, fontSize: 12),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -745,11 +1010,19 @@ class StockManagementScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF64748B),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   onPressed: () => Get.back(),
-                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
@@ -769,7 +1042,11 @@ class StockManagementScreen extends StatelessWidget {
             width: 150,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.grey),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.grey,
+              ),
             ),
           ),
           Expanded(

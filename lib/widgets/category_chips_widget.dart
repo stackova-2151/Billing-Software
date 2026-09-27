@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/responsive_helper.dart';
+
 class CategoryChipsWidget extends StatelessWidget {
   final List<String> categories;
   final String selected;
@@ -26,7 +28,9 @@ class CategoryChipsWidget extends StatelessWidget {
       height: 46,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveHelper.isMobile(context) ? 12 : 20,
+        ),
         itemCount: categories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
@@ -76,9 +80,10 @@ class _ChipItemState extends State<_ChipItem>
       lowerBound: 0.0,
       upperBound: 1.0,
     );
-    _scale = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
   }
 
   @override
@@ -127,7 +132,7 @@ class _ChipItemState extends State<_ChipItem>
             boxShadow: widget.isActive
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6C63FF).withOpacity(0.30),
+                      color: const Color(0xFF6C63FF).withValues(alpha: 0.30),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -143,8 +148,8 @@ class _ChipItemState extends State<_ChipItem>
                 height: 7,
                 decoration: BoxDecoration(
                   color: widget.isActive
-                      ? Colors.white.withOpacity(0.7)
-                      : CategoryChipsWidget.activeBg.withOpacity(0.4),
+                      ? Colors.white.withValues(alpha: 0.7)
+                      : CategoryChipsWidget.activeBg.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
                 ),
               ),
