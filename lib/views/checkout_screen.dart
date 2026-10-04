@@ -20,7 +20,6 @@ class CheckoutScreen extends StatelessWidget {
     final pdf = pw.Document();
     final lines = cartController.cartLines;
     final subtotal = cartController.subtotal;
-    final gst = cartController.gstAmount;
     final total = cartController.total;
 
     pdf.addPage(
@@ -61,16 +60,6 @@ class CheckoutScreen extends StatelessWidget {
                 pw.Text('Subtotal', style: pw.TextStyle(fontSize: 10)),
                 pw.Text(
                   '₹${subtotal.toStringAsFixed(0)}',
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-              ],
-            ),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('GST (5%)', style: pw.TextStyle(fontSize: 10)),
-                pw.Text(
-                  '₹${gst.toStringAsFixed(0)}',
                   style: const pw.TextStyle(fontSize: 10),
                 ),
               ],
@@ -158,7 +147,6 @@ class CheckoutScreen extends StatelessWidget {
           )
           .toList(),
       subtotal: cartController.subtotal,
-      gstAmount: cartController.gstAmount,
       total: cartController.total,
       paymentMode: cartController.paymentMode.value == 'CASH'
           ? PosPaymentMode.cash

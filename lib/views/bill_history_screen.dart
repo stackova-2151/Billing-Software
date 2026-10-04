@@ -1226,12 +1226,6 @@ class _OrderCardDetails extends StatelessWidget {
           label: 'Subtotal',
           value: '₹${order.subtotal.toStringAsFixed(0)}',
         ),
-        const SizedBox(height: 8),
-        _TotalsRow(
-          label: 'GST (5%)',
-          value: '₹${order.gstAmount.toStringAsFixed(0)}',
-          valueColor: const Color(0xFF64748B),
-        ),
         const SizedBox(height: 12),
         // Grand total
         Container(
@@ -1292,32 +1286,34 @@ class _OrderCardDetails extends StatelessWidget {
 class _TotalsRow extends StatelessWidget {
   final String label;
   final String value;
-  final Color? valueColor;
 
-  const _TotalsRow({required this.label, required this.value, this.valueColor});
+  const _TotalsRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: _DS.textSecondary,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _DS.textSecondary,
+            ),
           ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: valueColor ?? _DS.textPrimary,
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: _DS.textPrimary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

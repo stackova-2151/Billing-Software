@@ -50,7 +50,7 @@ class PosOrder {
     required this.createdAt,
     required this.lines,
     required this.subtotal,
-    required this.gstAmount,
+    this.gstAmount = 0,
     required this.total,
     required this.paymentMode,
     this.customerName = '',

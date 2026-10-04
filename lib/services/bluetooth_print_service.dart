@@ -185,16 +185,6 @@ class BluetoothPrintService {
         ),
       ]),
     );
-    bytes.addAll(
-      generator.row([
-        PosColumn(text: 'GST (5%)', width: 8),
-        PosColumn(
-          text: order.gstAmount.toStringAsFixed(0),
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]),
-    );
     bytes.addAll(generator.hr(ch: '='));
     bytes.addAll(
       generator.row([

@@ -15,8 +15,6 @@ class CartController extends GetxController {
   final RxList<CartLine> cartLines = <CartLine>[].obs;
   final RxString paymentMode = 'ONLINE'.obs;
 
-  static const double gstRate = 0.05;
-
   void addItem(MenuItem item) {
     final existingIndex = cartLines.indexWhere((e) => e.item.id == item.id);
     if (existingIndex != -1) {
@@ -62,8 +60,7 @@ class CartController extends GetxController {
   }
 
   double get subtotal => calculateTotal();
-  double get gstAmount => subtotal * gstRate;
-  double get total => subtotal + gstAmount;
+  double get total => subtotal;
 
   int get totalItems => cartLines.fold(0, (sum, e) => sum + e.qty.value);
 

@@ -82,7 +82,6 @@ class _CartWidgetState extends State<CartWidget> {
 
     buffer.writeln('--------------------------------');
     buffer.writeln('Subtotal: ₹${cart.subtotal.toStringAsFixed(0)}');
-    buffer.writeln('GST (5%): ₹${cart.gstAmount.toStringAsFixed(0)}');
     buffer.writeln('TOTAL: ₹${cart.total.toStringAsFixed(0)}');
     buffer.writeln('================================');
     return buffer.toString();
@@ -123,7 +122,6 @@ class _CartWidgetState extends State<CartWidget> {
             )
             .toList(),
         subtotal: cart.subtotal,
-        gstAmount: cart.gstAmount,
         total: cart.total,
         paymentMode: payment,
         customerName: customerController.text.trim(),
@@ -316,7 +314,8 @@ class _CartWidgetState extends State<CartWidget> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: () => Navigator.pop(ctx, _PrinterDialogAction.retry),
+                  onPressed: () =>
+                      Navigator.pop(ctx, _PrinterDialogAction.retry),
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text(
                     'Retry',
@@ -336,7 +335,8 @@ class _CartWidgetState extends State<CartWidget> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () => Navigator.pop(ctx, _PrinterDialogAction.selectNew),
+                  onPressed: () =>
+                      Navigator.pop(ctx, _PrinterDialogAction.selectNew),
                   icon: const Icon(Icons.bluetooth_searching_rounded, size: 18),
                   label: const Text(
                     'Select Different Printer',
@@ -527,15 +527,10 @@ class _CartWidgetState extends State<CartWidget> {
               ),
               child: Column(
                 children: [
-                  _TotalRow(
-                    label: 'Subtotal',
-                    value: '₹${cart.subtotal.toStringAsFixed(0)}',
-                  ),
-                  const SizedBox(height: 8),
-                  _TotalRow(
-                    label: 'GST (5%)',
-                    value: '₹${cart.gstAmount.toStringAsFixed(0)}',
-                  ),
+                  // _TotalRow(
+                  //   label: 'Subtotal',
+                  //   value: '₹${cart.subtotal.toStringAsFixed(0)}',
+                  // ),
                   const SizedBox(height: 10),
                   _TotalRow(
                     label: 'Total',

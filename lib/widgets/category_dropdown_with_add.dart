@@ -34,14 +34,16 @@ class CategoryDropdownWithAdd extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final categories = categoryController.activeCategoryNames;
-      
+
       // Build dropdown items
       final items = <DropdownMenuItem<String>>[
         // Regular categories
-        ...categories.map((cat) => DropdownMenuItem(
-              value: cat,
-              child: Text(cat),
-            )),
+        ...categories.map(
+          (cat) => DropdownMenuItem(
+            value: cat,
+            child: Text(cat, overflow: TextOverflow.ellipsis),
+          ),
+        ),
         // Add New Category option
         DropdownMenuItem(
           value: kAddNewCategoryValue,
@@ -53,11 +55,14 @@ class CategoryDropdownWithAdd extends StatelessWidget {
                 color: Theme.of(context).primaryColor,
               ),
               const SizedBox(width: 8),
-              Text(
-                '+ Add New Category',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  '+ Add New',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -66,28 +71,42 @@ class CategoryDropdownWithAdd extends StatelessWidget {
       ];
 
       return DropdownButtonFormField<String>(
-        value: categories.contains(value) ? value : (categories.isNotEmpty ? categories.first : null),
+        isExpanded: true,
+        value: categories.contains(value)
+            ? value
+            : (categories.isNotEmpty ? categories.first : null),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: labelStyle,
           filled: backgroundColor != null,
           fillColor: backgroundColor,
-          contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          contentPadding:
+              contentPadding ??
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: borderColor ?? const Color(0xFFE2E8F0)),
+            borderSide: BorderSide(
+              color: borderColor ?? const Color(0xFFE2E8F0),
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: borderColor ?? const Color(0xFFE2E8F0)),
+            borderSide: BorderSide(
+              color: borderColor ?? const Color(0xFFE2E8F0),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: borderColor ?? Theme.of(context).primaryColor, width: 1.8),
+            borderSide: BorderSide(
+              color: borderColor ?? Theme.of(context).primaryColor,
+              width: 1.8,
+            ),
           ),
         ),
         icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-        style: textStyle ?? const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
+        style:
+            textStyle ??
+            const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
         dropdownColor: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(14),
         items: items,
@@ -111,12 +130,16 @@ class CategoryDropdownWithAdd extends StatelessWidget {
     // Auto-calculate next display order
     final nextOrder = categoryController.categories.isEmpty
         ? 1
-        : categoryController.categories.map((c) => c.displayOrder).reduce((a, b) => a > b ? a : b) + 1;
+        : categoryController.categories
+                  .map((c) => c.displayOrder)
+                  .reduce((a, b) => a > b ? a : b) +
+              1;
     orderController.text = nextOrder.toString();
 
     Get.dialog(
       WillPopScope(
-        onWillPop: () async => !isLoading.value, // Prevent closing while loading
+        onWillPop: () async =>
+            !isLoading.value, // Prevent closing while loading
         child: AlertDialog(
           title: Row(
             children: [
@@ -126,10 +149,14 @@ class CategoryDropdownWithAdd extends StatelessWidget {
                   color: const Color(0xFF16A34A).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.add_circle, color: Color(0xFF16A34A), size: 24),
+                child: const Icon(
+                  Icons.add_circle,
+                  color: Color(0xFF16A34A),
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
-              const Text('Add New Category'),
+              const Text('Add New'),
             ],
           ),
           content: SizedBox(
@@ -144,12 +171,18 @@ class CategoryDropdownWithAdd extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'Category Name *',
                     hintText: 'e.g. Beverages',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     filled: true,
                     fillColor: Colors.grey[50],
                     prefixIcon: const Icon(Icons.category),
                   ),
-                  onSubmitted: (_) => _submitCategory(nameController, orderController, isLoading),
+                  onSubmitted: (_) => _submitCategory(
+                    nameController,
+                    orderController,
+                    isLoading,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -158,7 +191,9 @@ class CategoryDropdownWithAdd extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'Display Order',
                     hintText: 'Order in dropdown',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     filled: true,
                     fillColor: Colors.grey[50],
                     prefixIcon: const Icon(Icons.sort),
@@ -173,31 +208,52 @@ class CategoryDropdownWithAdd extends StatelessWidget {
             ),
           ),
           actions: [
-            Obx(() => TextButton(
-                  onPressed: isLoading.value ? null : () => Navigator.of(Get.overlayContext!, rootNavigator: true).pop(),
-                  child: const Text('Cancel'),
-                )),
-            Obx(() => ElevatedButton(
-                  onPressed: isLoading.value
-                      ? null
-                      : () => _submitCategory(nameController, orderController, isLoading),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            Obx(
+              () => TextButton(
+                onPressed: isLoading.value
+                    ? null
+                    : () => Navigator.of(
+                        Get.overlayContext!,
+                        rootNavigator: true,
+                      ).pop(),
+                child: const Text('Cancel'),
+              ),
+            ),
+            Obx(
+              () => ElevatedButton(
+                onPressed: isLoading.value
+                    ? null
+                    : () => _submitCategory(
+                        nameController,
+                        orderController,
+                        isLoading,
+                      ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: isLoading.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Add Category', style: TextStyle(fontWeight: FontWeight.w700)),
-                )),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: isLoading.value
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Add Category',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+              ),
+            ),
           ],
         ),
       ),

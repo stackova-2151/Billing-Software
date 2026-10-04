@@ -908,22 +908,22 @@ class _AddMenuItemDialogState extends State<AddMenuItemDialog>
                 ),
               ),
               const SizedBox(width: 14),
-              Expanded(
-                child: Obx(
-                  () => _PremiumDropdown<double>(
-                    value: gst.value,
-                    label: 'GST %',
-                    items: _gstOptions
-                        .map(
-                          (g) => DropdownMenuItem(value: g, child: Text('$g%')),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) gst.value = v;
-                    },
-                  ),
-                ),
-              ),
+              // Expanded(
+              //   child: Obx(
+              //     () => _PremiumDropdown<double>(
+              //       value: gst.value,
+              //       label: 'GST %',
+              //       items: _gstOptions
+              //           .map(
+              //             (g) => DropdownMenuItem(value: g, child: Text('$g%')),
+              //           )
+              //           .toList(),
+              //       onChanged: (v) {
+              //         if (v != null) gst.value = v;
+              //       },
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
