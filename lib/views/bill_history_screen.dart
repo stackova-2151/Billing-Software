@@ -418,6 +418,7 @@ class _SearchAndFilters extends StatelessWidget {
                           isActive: isActive,
                           onTap: () {
                             period.value = e.$1;
+                            period.refresh();
                             fromDate.value = null;
                             toDate.value = null;
                           },

@@ -36,6 +36,7 @@ class ResponsiveHelper {
     return 1;
   }
 
+  // POS item card grid — slightly fewer columns so cards have room for the image
   static int getPosGridCrossAxisCount(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1700) return 6;

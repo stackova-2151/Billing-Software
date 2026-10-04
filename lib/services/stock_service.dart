@@ -75,12 +75,9 @@ class StockService {
     
     final currentStock = (doc.data()?['stockQuantity'] ?? 0) as int;
     
-    if (currentStock < quantity) {
-      throw Exception('Insufficient stock. Available: $currentStock, Required: $quantity');
-    }
-    
+    final newStock = (currentStock - quantity).clamp(0, double.maxFinite.toInt());
     await docRef.update({
-      'stockQuantity': currentStock - quantity,
+      'stockQuantity': newStock,
     });
   }
 
@@ -98,13 +95,9 @@ class StockService {
       
       final currentStock = (doc.data()?['stockQuantity'] ?? 0) as int;
       
-      if (currentStock < quantity) {
-        final itemName = doc.data()?['name'] ?? 'Unknown';
-        throw Exception('Insufficient stock for $itemName. Available: $currentStock, Required: $quantity');
-      }
-      
+      final newStock = (currentStock - quantity).clamp(0, double.maxFinite.toInt());
       batch.update(docRef, {
-        'stockQuantity': currentStock - quantity,
+        'stockQuantity': newStock,
       });
     }
     

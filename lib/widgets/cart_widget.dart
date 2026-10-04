@@ -14,6 +14,8 @@ import '../services/stock_service.dart';
 import '../utils/responsive_helper.dart';
 import 'cart_item_widget.dart';
 
+enum _PrinterDialogAction { retry, selectNew }
+
 class CartWidget extends StatefulWidget {
   final CartController cartController;
 
@@ -54,6 +56,7 @@ class _CartWidgetState extends State<CartWidget> {
         backgroundColor: isError ? Colors.red : const Color(0xFF16A34A),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       ),
     );
   }
@@ -195,11 +198,13 @@ class _CartWidgetState extends State<CartWidget> {
     final connected = await service.connect(mac);
     if (!connected) {
       if (!mounted) return;
-      _showSnackBar(
-        context,
-        message: 'Could not connect to printer. Make sure it is on and paired.',
-        isError: true,
-      );
+      final action = await _showPrinterDisconnectedDialog(mac);
+      if (action == _PrinterDialogAction.retry) {
+        await _printAndroid(order);
+      } else if (action == _PrinterDialogAction.selectNew) {
+        await service.clearSavedMac();
+        await _printAndroid(order);
+      }
       return;
     }
 
@@ -253,6 +258,108 @@ class _CartWidgetState extends State<CartWidget> {
     } finally {
       client.close();
     }
+  }
+
+  Future<_PrinterDialogAction?> _showPrinterDisconnectedDialog(String mac) {
+    return showDialog<_PrinterDialogAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.print_disabled_rounded,
+                  size: 32,
+                  color: Color(0xFFDC2626),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Printer Disconnected',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E1B3A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please, Connect the Printer',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF6B6880),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C63FF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(ctx, _PrinterDialogAction.retry),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text(
+                    'Retry',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6C63FF),
+                    side: const BorderSide(color: Color(0xFF6C63FF)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, _PrinterDialogAction.selectNew),
+                  icon: const Icon(Icons.bluetooth_searching_rounded, size: 18),
+                  label: const Text(
+                    'Select Different Printer',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, null),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ── Save order + clear cart (shared) ────────────────────────────────────────

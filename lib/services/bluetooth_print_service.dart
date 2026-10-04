@@ -117,6 +117,11 @@ class BluetoothPrintService {
     return prefs.getString(_prefKey);
   }
 
+  Future<void> clearSavedMac() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefKey);
+  }
+
   Future<bool> connect(String mac) async {
     final connected = await PrintBluetoothThermal.connectionStatus;
     if (connected) return true;

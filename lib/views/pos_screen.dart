@@ -144,7 +144,7 @@ class PosScreen extends StatelessWidget {
                               SliverToBoxAdapter(
                                 child: Obx(
                                   () => CategoryChipsWidget(
-                                    categories: menuController.categories,
+                                    categories: menuController.categories.toList(),
                                     selected:
                                         menuController.selectedCategory.value,
                                     onSelected: menuController.setCategory,
@@ -276,7 +276,7 @@ class PosScreen extends StatelessWidget {
         crossAxisCount: ResponsiveHelper.getPosGridCrossAxisCount(context),
         crossAxisSpacing: isMobile ? 12 : 22,
         mainAxisSpacing: isMobile ? 16 : 28,
-        childAspectRatio: isMobile ? 0.75 : 0.92,
+        childAspectRatio: isMobile ? 0.65 : 0.80,
       ),
       itemCount: 8,
       itemBuilder: (_, __) => const ItemCardShimmer(),
@@ -296,7 +296,7 @@ class PosScreen extends StatelessWidget {
         crossAxisCount: ResponsiveHelper.getPosGridCrossAxisCount(context),
         crossAxisSpacing: isMobile ? 12 : 22,
         mainAxisSpacing: isMobile ? 16 : 28,
-        childAspectRatio: isMobile ? 0.75 : 0.92,
+        childAspectRatio: isMobile ? 0.65 : 0.80,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -753,7 +753,6 @@ class _MobileNavBar extends StatelessWidget {
 class _NavBarItem extends StatelessWidget {
   static const _accent = Color(0xFF6C63FF);
   static const _inactive = Color(0xFF9CA3AF);
-
   final IconData icon;
   final String label;
   final bool active;
@@ -808,7 +807,6 @@ class _MobileDrawer extends StatelessWidget {
 
   const _MobileDrawer({required this.screenController});
 
-  static const _accent = Color(0xFF6C63FF);
   static const _bg = Color(0xFFF8F7FF);
 
   @override

@@ -26,7 +26,6 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
   late final AnimationController _tapCtrl;
   late final Animation<double> _tapScale;
 
-  // Premium gradient pairs for each card slot
   static const List<List<Color>> _cardGradients = [
     [Color(0xFFEDE9FF), Color(0xFFD6CEFF)],
     [Color(0xFFFFE8E8), Color(0xFFFFD0D0)],
@@ -34,6 +33,16 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
     [Color(0xFFE8FFE8), Color(0xFFC8F0C8)],
     [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
     [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+  ];
+
+  // Vibrant gradients shown when item is in cart
+  static const List<List<Color>> _activeGradients = [
+    [Color(0xFF6C63FF), Color(0xFF4F46E5)],
+    [Color(0xFFEF4444), Color(0xFFDC2626)],
+    [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+    [Color(0xFF22C55E), Color(0xFF16A34A)],
+    [Color(0xFFF59E0B), Color(0xFFD97706)],
+    [Color(0xFFEC4899), Color(0xFFDB2777)],
   ];
 
   static const Color _primaryAccent = Color(0xFF6C63FF);
@@ -48,10 +57,9 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
       duration: const Duration(milliseconds: 110),
       reverseDuration: const Duration(milliseconds: 220),
     );
-    _tapScale = Tween<double>(
-      begin: 1.0,
-      end: 0.91,
-    ).animate(CurvedAnimation(parent: _tapCtrl, curve: Curves.easeOut));
+    _tapScale = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _tapCtrl, curve: Curves.easeOut),
+    );
   }
 
   @override
@@ -60,9 +68,7 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
     super.dispose();
   }
 
-  void _handleTapDown(TapDownDetails _) {
-    _tapCtrl.forward();
-  }
+  void _handleTapDown(TapDownDetails _) => _tapCtrl.forward();
 
   void _handleTapUp(TapUpDetails _) {
     _tapCtrl.reverse();
@@ -74,12 +80,13 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
     }
   }
 
-  void _handleTapCancel() {
-    _tapCtrl.reverse();
-  }
+  void _handleTapCancel() => _tapCtrl.reverse();
 
   List<Color> get _gradient =>
       _cardGradients[widget.index % _cardGradients.length];
+
+  List<Color> get _activeGradient =>
+      _activeGradients[widget.index % _activeGradients.length];
 
   @override
   Widget build(BuildContext context) {
@@ -94,148 +101,140 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
         onTapCancel: _handleTapCancel,
         child: ScaleTransition(
           scale: _tapScale,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final imageSize =
-                  (constraints.maxWidth * (isMobile ? 0.72 : 0.64)).clamp(
-                    112.0,
-                    120.0,
-                  );
-              final topOffset = -(imageSize * 0.38);
-
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // ── Main card ──
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: _gradient,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _gradient.last.withValues(alpha: 0.55),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: qty > 0 ? _activeGradient : _gradient,
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: qty > 0
+                  ? Border.all(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      width: 1.5,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: qty > 0
+                      ? _activeGradient.last.withValues(alpha: 0.55)
+                      : _gradient.last.withValues(alpha: 0.5),
+                  blurRadius: qty > 0 ? 24 : 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 10 : 14,
+              isMobile ? 16 : 18,
+              isMobile ? 10 : 14,
+              isMobile ? 12 : 14,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Image ──────────────────────────────────────────────────
+                Expanded(
+                  flex: 6,
+                  child: Center(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final size = (constraints.maxHeight * 0.92)
+                            .clamp(70.0, 180.0);
+                        return _ItemImage(
+                          item: widget.item,
+                          size: size,
+                          ringColor: qty > 0 ? _activeGradient.first : _gradient.first,
+                          isActive: qty > 0,
+                        );
+                      },
                     ),
-                    padding: EdgeInsets.fromLTRB(
-                      isMobile ? 10 : 12,
-                      isMobile ? 8 : 10,
-                      isMobile ? 10 : 12,
-                      isMobile ? 10 : 12,
+                  ),
+                ),
+
+                SizedBox(height: isMobile ? 10 : 12),
+
+                // ── Name ───────────────────────────────────────────────────
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    widget.item.name,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: isMobile ? 16 : 16,
+                      color: qty > 0 ? Colors.white : _textDark,
+                      height: 1.2,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(height: imageSize * 0.52),
+                  ),
+                ),
 
-                        // Item name
-                        Text(
-                          widget.item.name,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: isMobile ? 16 : 18,
-                            letterSpacing: 0.1,
-                            color: _textDark,
-                            height: 1.15,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
+                // ── Price ──────────────────────────────────────────────────
+                Text(
+                  '₹${widget.item.price.toStringAsFixed(0)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 16 : 17,
+                    color: qty > 0 ? Colors.white.withValues(alpha: 0.9) : _primaryAccent,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
 
-                        // Price row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '₹${widget.item.price.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontSize: isMobile ? 14 : 16,
-                                color: _textMid,
-                                fontWeight: FontWeight.w600,
+                SizedBox(height: isMobile ? 8 : 10),
+
+                // ── Add button ─────────────────────────────────────────────
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: qty > 0
+                        ? Colors.white.withValues(alpha: 0.25)
+                        : Colors.white.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(17),
+                    border: qty > 0
+                        ? Border.all(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            width: 1.5,
+                          )
+                        : null,
+                  ),
+                  child: Center(
+                    child: qty > 0
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_rounded,
+                                  size: 14, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Added ×$qty',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        // Add / added indicator
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: qty > 0
-                                ? _primaryAccent
-                                : Colors.white.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: qty > 0
-                                  ? _primaryAccent
-                                  : Colors.white.withValues(alpha: 0.0),
+                            ],
+                          )
+                        : Text(
+                            '+ Add',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _primaryAccent,
                             ),
                           ),
-                          child: Center(
-                            child: qty > 0
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.check_rounded,
-                                        size: 14,
-                                        color: Colors.white,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Added  ×$qty',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Text(
-                                    '+ Add',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: _primaryAccent,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-
-                  // ── Floating image circle ──
-                  Positioned(
-                    top: topOffset,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _FloatingImage(
-                        item: widget.item,
-                        imageSize: imageSize,
-                        gradientColor: _gradient.first,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -243,56 +242,58 @@ class _ItemCardWidgetState extends State<ItemCardWidget>
   }
 }
 
-// ── Floating circular image with ring ──────────────────────────────────────
-class _FloatingImage extends StatelessWidget {
+// ── Item image circle ──────────────────────────────────────────────────────────
+class _ItemImage extends StatelessWidget {
   final MenuItem item;
-  final double imageSize;
-  final Color gradientColor;
+  final double size;
+  final Color ringColor;
+  final bool isActive;
 
-  const _FloatingImage({
+  const _ItemImage({
     required this.item,
-    required this.imageSize,
-    required this.gradientColor,
+    required this.size,
+    required this.ringColor,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: imageSize,
-      height: imageSize,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 4),
+        color: Colors.white,
+        border: Border.all(
+          color: isActive ? Colors.white : Colors.white,
+          width: isActive ? 4 : 3,
+        ),
         boxShadow: [
           BoxShadow(
-            blurRadius: 18,
-            spreadRadius: 2,
-            color: Colors.black12,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: isActive ? 0.18 : 0.10),
+            blurRadius: isActive ? 20 : 12,
+            offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: gradientColor.withValues(alpha: 0.14),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: ringColor.withValues(alpha: isActive ? 0.0 : 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
-        color: Colors.white,
       ),
-      child: ClipOval(
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: _buildImageContent(),
-        ),
-      ),
+      child: ClipOval(child: _buildContent()),
     );
   }
 
-  Widget _buildImageContent() {
+  Widget _buildContent() {
     if (item.image.trim().isEmpty) {
-      return Icon(
-        Icons.ramen_dining_rounded,
-        size: imageSize * 0.46,
-        color: const Color(0xFF6C63FF),
+      return Container(
+        color: const Color(0xFFF4F3FF),
+        child: Icon(
+          Icons.ramen_dining_rounded,
+          size: size * 0.48,
+          color: const Color(0xFF6C63FF),
+        ),
       );
     }
 
@@ -301,25 +302,31 @@ class _FloatingImage extends StatelessWidget {
       fit: BoxFit.cover,
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;
-        return Center(
-          child: SizedBox(
-            width: imageSize * 0.3,
-            height: imageSize * 0.3,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: const Color(0xFF6C63FF),
-              value: progress.expectedTotalBytes != null
-                  ? progress.cumulativeBytesLoaded /
+        return Container(
+          color: const Color(0xFFF4F3FF),
+          child: Center(
+            child: SizedBox(
+              width: size * 0.28,
+              height: size * 0.28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: const Color(0xFF6C63FF),
+                value: progress.expectedTotalBytes != null
+                    ? progress.cumulativeBytesLoaded /
                         progress.expectedTotalBytes!
-                  : null,
+                    : null,
+              ),
             ),
           ),
         );
       },
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.broken_image_outlined,
-        size: imageSize * 0.42,
-        color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
+      errorBuilder: (_, __, ___) => Container(
+        color: const Color(0xFFF4F3FF),
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: size * 0.42,
+          color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
+        ),
       ),
     );
   }
